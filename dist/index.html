@@ -32,7 +32,12 @@
 
         <button id="resumeBtn" class="resume-card hidden">
           <span class="resume-icon">↻</span>
-          <span><strong>Lanjutkan permainan</strong><small>Posisi terakhir tersimpan di perangkat ini</small></span>
+          <span><strong>Lanjutkan Ular Tangga</strong><small>Posisi terakhir tersimpan di perangkat ini</small></span>
+          <span>›</span>
+        </button>
+        <button id="resumeCardsBtn" class="resume-card resume-cards hidden">
+          <span class="resume-icon">🃏</span>
+          <span><strong>Lanjutkan Kartu Tantangan</strong><small>Ronde terakhir tersimpan di perangkat ini</small></span>
           <span>›</span>
         </button>
 
@@ -48,8 +53,8 @@
           <button class="game-card" data-game="ludo">
             <span class="game-icon">🎯</span><span class="game-copy"><strong>Ludo</strong><small>Adu strategi bersama pasangan</small></span>
           </button>
-          <button class="game-card" data-game="cards">
-            <span class="game-icon">🃏</span><span class="game-copy"><strong>Kartu Tantangan</strong><small>Ambil satu dan berani lakukan</small></span>
+          <button class="game-card available" data-game="cards">
+            <span class="game-icon">🃏</span><span class="game-copy"><strong>Kartu Tantangan</strong><small>Ambil satu dan berani lakukan</small></span><span class="play-pill">MAIN</span>
           </button>
           <button class="game-card" data-game="words">
             <span class="game-icon">💬</span><span class="game-copy"><strong>Tebak Kata</strong><small>Seberapa kompak kalian?</small></span>
@@ -59,9 +64,9 @@
 
       <section id="levelScreen" class="screen">
         <div class="section-heading">
-          <p class="eyebrow">ULAR TANGGA PASANGAN</p>
+          <p id="levelEyebrow" class="eyebrow">ULAR TANGGA PASANGAN</p>
           <h2>Pilih level permainan</h2>
-          <p>Keduanya memakai papan yang sama, tetapi tantangannya berbeda.</p>
+          <p id="levelDescription">Keduanya memakai papan yang sama, tetapi tantangannya berbeda.</p>
         </div>
         <div class="level-grid">
           <button class="level-card level-one" data-level="1">
@@ -89,7 +94,7 @@
           </div>
 
           <div class="setup-panel challenge-panel">
-            <div class="panel-title"><span>2</span><div><h3>Pilih jebakan</h3><p><strong id="selectedCount">30</strong> dipilih · akan mengisi 30 kotak</p></div></div>
+            <div class="panel-title"><span>2</span><div><h3 id="selectionTitle">Pilih jebakan</h3><p><strong id="selectedCount">30</strong> dipilih · <span id="selectionDescription">akan mengisi 30 kotak</span></p></div></div>
             <div class="challenge-tools">
               <button id="selectAllBtn" class="text-btn">Pilih semua</button>
               <button id="clearAllBtn" class="text-btn">Kosongkan</button>
@@ -136,6 +141,32 @@
         </div>
       </section>
 
+      <section id="cardGameScreen" class="screen card-game-screen">
+        <div class="game-head">
+          <div><p id="cardGameLevelLabel" class="eyebrow">LEVEL 1 · ROMANTIS</p><h2 id="cardTurnLabel">Giliran Pemain 1</h2></div>
+          <button id="newCardGameBtn" class="secondary-btn small">Ulangi</button>
+        </div>
+        <div class="card-play-layout">
+          <div class="deck-arena">
+            <div class="deck-glow"></div>
+            <button id="cardDeck" class="card-deck" aria-label="Ambil kartu tantangan">
+              <span class="deck-card deck-card-back"></span>
+              <span class="deck-card deck-card-middle"></span>
+              <span class="deck-card deck-card-front"><span class="deck-heart">♥</span><strong>KARTU<br> TANTANGAN</strong><small>KETUK UNTUK AMBIL</small></span>
+            </button>
+            <p id="cardDeckStatus" class="deck-status">30 kartu sudah dikocok</p>
+            <button id="drawCardBtn" class="primary-btn card-draw-btn">🃏 AMBIL KARTU</button>
+          </div>
+          <aside class="card-sidebar">
+            <div class="card-round-stat"><span id="cardsRemaining">30</span><small>Kartu tersisa</small></div>
+            <div id="cardPlayerStatus" class="player-status"></div>
+            <div class="card-rule"><span>01</span><p>Ambil satu kartu saat giliranmu.</p></div>
+            <div class="card-rule"><span>02</span><p>Lakukan tantangannya sampai selesai.</p></div>
+            <div class="card-rule"><span>03</span><p>Tekan DONE untuk berganti giliran.</p></div>
+          </aside>
+        </div>
+      </section>
+
       <section id="placeholderScreen" class="screen">
         <div class="placeholder-card"><span id="placeholderIcon">🎮</span><p class="eyebrow">SEGERA HADIR</p><h2 id="placeholderTitle">Game berikutnya</h2><p>Strukturnya sudah disiapkan. Setelah ular tangga selesai, permainan ini bisa kita kerjakan berikutnya.</p><button class="primary-btn" data-back-home>Kembali ke Menu</button></div>
       </section>
@@ -162,6 +193,10 @@
 
     <div id="winnerModal" class="modal hidden" role="dialog" aria-modal="true">
       <div class="modal-card winner-card"><span class="winner-crown">👑</span><p class="eyebrow">PERMAINAN SELESAI</p><h2 id="winnerTitle">Pemain 1 Menang!</h2><p>Berhasil mencapai kotak 100.</p><button id="playAgainBtn" class="primary-btn full">Main Lagi</button><button class="text-btn" data-back-home>Kembali ke Menu</button></div>
+    </div>
+
+    <div id="cardRoundModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card winner-card"><span class="winner-crown">💖</span><p class="eyebrow">RONDE SELESAI</p><h2>Semua Kartu Selesai!</h2><p>Kalian sudah menuntaskan seluruh tantangan yang dipilih.</p><button id="shuffleAgainBtn" class="primary-btn full">Kocok &amp; Main Lagi</button><button id="cardSettingsBtn" class="text-btn">Atur Kartu</button><button class="text-btn" data-back-home>Kembali ke Menu</button></div>
     </div>
 
     <div id="toast" class="toast hidden" role="status"></div>
