@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#21052d" />
+    <meta name="description" content="Kumpulan permainan seru untuk pasangan dewasa." />
+    <title>Game Pasangan</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2321052d'/%3E%3Cpath d='M32 52S8 39 8 21c0-12 16-16 24-5 8-11 24-7 24 5 0 18-24 31-24 31z' fill='%23ff3d81'/%3E%3Ccircle cx='24' cy='25' r='3' fill='white'/%3E%3Ccircle cx='40' cy='25' r='3' fill='white'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <header class="topbar">
+      <button id="backBtn" class="icon-btn hidden" aria-label="Kembali">←</button>
+      <button id="brandBtn" class="brand" aria-label="Ke menu utama">
+        <span class="brand-mark">♥</span>
+        <span>Game Pasangan</span>
+      </button>
+      <button id="muteBtn" class="icon-btn" aria-label="Matikan suara">🔊</button>
+    </header>
+
+    <main class="app-shell">
+      <section id="homeScreen" class="screen active">
+        <div class="intro">
+          <p class="eyebrow">MAIN BERDUA, MAKIN DEKAT</p>
+          <h1>Pilih permainan malam ini</h1>
+          <p>Lima permainan, satu tempat, dan banyak alasan untuk tertawa bersama.</p>
+        </div>
+
+        <button id="resumeBtn" class="resume-card hidden">
+          <span class="resume-icon">↻</span>
+          <span><strong>Lanjutkan permainan</strong><small>Posisi terakhir tersimpan di perangkat ini</small></span>
+          <span>›</span>
+        </button>
+
+        <div class="game-grid">
+          <button class="game-card featured" data-game="snake">
+            <span class="game-icon">🐍</span>
+            <span class="game-copy"><strong>Ular Tangga</strong><small>Naik, turun, dan jalani tantangannya</small></span>
+            <span class="play-pill">MAIN</span>
+          </button>
+          <button class="game-card" data-game="wheel">
+            <span class="game-icon">🎡</span><span class="game-copy"><strong>Spin Wheel</strong><small>Putar dan lihat tantanganmu</small></span>
+          </button>
+          <button class="game-card" data-game="ludo">
+            <span class="game-icon">🎯</span><span class="game-copy"><strong>Ludo</strong><small>Adu strategi bersama pasangan</small></span>
+          </button>
+          <button class="game-card" data-game="cards">
+            <span class="game-icon">🃏</span><span class="game-copy"><strong>Kartu Tantangan</strong><small>Ambil satu dan berani lakukan</small></span>
+          </button>
+          <button class="game-card" data-game="words">
+            <span class="game-icon">💬</span><span class="game-copy"><strong>Tebak Kata</strong><small>Seberapa kompak kalian?</small></span>
+          </button>
+        </div>
+      </section>
+
+      <section id="levelScreen" class="screen">
+        <div class="section-heading">
+          <p class="eyebrow">ULAR TANGGA PASANGAN</p>
+          <h2>Pilih level permainan</h2>
+          <p>Keduanya memakai papan yang sama, tetapi tantangannya berbeda.</p>
+        </div>
+        <div class="level-grid">
+          <button class="level-card level-one" data-level="1">
+            <span class="level-number">01</span><span class="level-emoji">💞</span>
+            <h3>Romantis</h3><p>Manis, lucu, dan penuh perhatian kecil.</p><span class="level-action">Pilih Level 1 →</span>
+          </button>
+          <button class="level-card level-two" data-level="2">
+            <span class="adult-badge">18+</span><span class="level-number">02</span><span class="level-emoji">🔥</span>
+            <h3>Hot &amp; Berani</h3><p>Lebih vulgar dan intim, khusus pasangan dewasa.</p><span class="level-action">Pilih Level 2 →</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="setupScreen" class="screen">
+        <div class="section-heading compact">
+          <p id="setupEyebrow" class="eyebrow">LEVEL 1 · ROMANTIS</p>
+          <h2>Siapkan permainan</h2>
+        </div>
+
+        <div class="setup-layout">
+          <div class="setup-panel">
+            <div class="panel-title"><span>1</span><div><h3>Pemain</h3><p>Minimal 2, maksimal 4 pemain</p></div></div>
+            <div id="playerInputs" class="player-inputs"></div>
+            <button id="addPlayerBtn" class="secondary-btn">＋ Tambah pemain</button>
+          </div>
+
+          <div class="setup-panel challenge-panel">
+            <div class="panel-title"><span>2</span><div><h3>Pilih jebakan</h3><p><strong id="selectedCount">30</strong> dipilih · akan mengisi 30 kotak</p></div></div>
+            <div class="challenge-tools">
+              <button id="selectAllBtn" class="text-btn">Pilih semua</button>
+              <button id="clearAllBtn" class="text-btn">Kosongkan</button>
+            </div>
+            <div id="challengeList" class="challenge-list"></div>
+            <form id="customChallengeForm" class="custom-form">
+              <input id="customChallengeInput" maxlength="180" placeholder="Tulis tantangan buatanmu…" required />
+              <label class="timer-check"><input id="customTimedInput" type="checkbox" /> ⏱ Pakai timer</label>
+              <button class="small-primary" type="submit">＋ Tambahkan</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="sticky-start">
+          <p id="setupHint">Tantangan akan diacak merata, 3 jebakan pada setiap baris.</p>
+          <button id="startGameBtn" class="primary-btn">Acak Papan &amp; Mulai</button>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="screen game-screen">
+        <div class="game-head">
+          <div><p id="gameLevelLabel" class="eyebrow">LEVEL 1 · ROMANTIS</p><h2 id="turnLabel">Giliran Pemain 1</h2></div>
+          <button id="newGameBtn" class="secondary-btn small">Ulangi</button>
+        </div>
+
+        <div class="play-layout">
+          <div id="boardWrap" class="board-wrap">
+            <svg id="boardLinks" class="board-links" viewBox="0 0 1000 1000" aria-hidden="true"></svg>
+            <div id="board" class="board" aria-label="Papan ular tangga 100 kotak"></div>
+          </div>
+
+          <aside class="game-sidebar">
+            <div id="playerStatus" class="player-status"></div>
+            <div class="dice-stage">
+              <div id="dice" class="dice" aria-label="Dadu menunjukkan angka 1">
+                <div class="die-face face-1">⚀</div><div class="die-face face-2">⚁</div><div class="die-face face-3">⚂</div>
+                <div class="die-face face-4">⚃</div><div class="die-face face-5">⚄</div><div class="die-face face-6">⚅</div>
+              </div>
+            </div>
+            <p id="diceMessage" class="dice-message">Tekan dadu untuk mulai</p>
+            <button id="rollBtn" class="primary-btn dice-btn">🎲 PUTAR DADU</button>
+            <div class="legend"><span>⚡ Langsung</span><span>⏱ Timer</span><span>🪜 Tangga</span><span>🐍 Ular</span></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="placeholderScreen" class="screen">
+        <div class="placeholder-card"><span id="placeholderIcon">🎮</span><p class="eyebrow">SEGERA HADIR</p><h2 id="placeholderTitle">Game berikutnya</h2><p>Strukturnya sudah disiapkan. Setelah ular tangga selesai, permainan ini bisa kita kerjakan berikutnya.</p><button class="primary-btn" data-back-home>Kembali ke Menu</button></div>
+      </section>
+    </main>
+
+    <div id="challengeModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="challengeTitle">
+      <div class="modal-card challenge-modal-card">
+        <div id="challengeTypeBadge" class="challenge-type">⚡ TANTANGAN LANGSUNG</div>
+        <p id="challengePlayer" class="modal-player">Giliran Pemain 1</p>
+        <h2 id="challengeTitle">Lakukan tantangan ini</h2>
+        <p id="challengeText" class="challenge-text"></p>
+        <div id="timerControls" class="timer-controls hidden">
+          <p>Pilih durasi</p>
+          <div class="duration-options">
+            <button data-duration="10">10 detik</button><button data-duration="20">20 detik</button>
+            <button data-duration="30" class="selected">30 detik</button><button data-duration="60">1 menit</button>
+          </div>
+          <button id="startTimerBtn" class="secondary-btn full">▶ Mulai Timer</button>
+          <div id="timerDisplay" class="timer-display hidden"><span id="timerValue">00:30</span><small id="timerStatus">Waktu berjalan…</small></div>
+        </div>
+        <button id="doneChallengeBtn" class="primary-btn full">DONE ✓</button>
+      </div>
+    </div>
+
+    <div id="winnerModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card winner-card"><span class="winner-crown">👑</span><p class="eyebrow">PERMAINAN SELESAI</p><h2 id="winnerTitle">Pemain 1 Menang!</h2><p>Berhasil mencapai kotak 100.</p><button id="playAgainBtn" class="primary-btn full">Main Lagi</button><button class="text-btn" data-back-home>Kembali ke Menu</button></div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
