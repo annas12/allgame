@@ -2,7 +2,7 @@ import { LEVELS } from "./challenges.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const STORAGE = { custom: "gp-custom-v1", selected: "gp-selected-v1", mute: "gp-muted-v1", game: "gp-current-game-v1" };
+const STORAGE = { custom: "gp-custom-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1" };
 const COLORS = ["#ff3d81", "#6ee7ff", "#ffd166", "#9bff8a"];
 const LADDER = { 3: 22, 8: 26, 20: 41, 28: 55, 36: 57, 51: 72, 63: 81, 71: 92 };
 const SNAKE = { 17: 4, 31: 12, 47: 25, 59: 38, 69: 49, 78: 56, 88: 67, 97: 76 };
@@ -10,8 +10,11 @@ const SPECIAL_CELLS = new Set([...Object.keys(LADDER), ...Object.values(LADDER),
 
 let currentScreen = "homeScreen";
 let selectedLevel = 1;
+let selectedGameMode = "snake";
 let playerCount = 2;
 let game = null;
+let cardGame = null;
+let challengeOwner = "snake";
 let busy = false;
 let timerId = null;
 let chosenDuration = 30;
@@ -25,7 +28,7 @@ function showScreen(id, remember = true) {
   if (remember && currentScreen !== id) screenHistory.push(currentScreen);
   screens.forEach((screen) => screen.classList.toggle("active", screen.id === id));
   currentScreen = id;
-  $("#backBtn").classList.toggle("hidden", id === "homeScreen" || id === "gameScreen");
+  $("#backBtn").classList.toggle("hidden", id === "homeScreen" || id === "gameScreen" || id === "cardGameScreen");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -50,18 +53,22 @@ function getChallenges(level = selectedLevel) {
   return [...LEVELS[level].challenges, ...(custom[level] || [])];
 }
 
+function selectionStorageKey() {
+  return selectedGameMode === "cards" ? STORAGE.selectedCards : STORAGE.selected;
+}
+
 function getSavedSelected(level = selectedLevel) {
   let saved = {};
-  try { saved = JSON.parse(localStorage.getItem(STORAGE.selected)) || {}; } catch {}
+  try { saved = JSON.parse(localStorage.getItem(selectionStorageKey())) || {}; } catch {}
   const allIds = getChallenges(level).map((item) => item.id);
   return new Set(Array.isArray(saved[level]) ? saved[level].filter((id) => allIds.includes(id)) : allIds);
 }
 
 function saveSelected(ids, level = selectedLevel) {
   let saved = {};
-  try { saved = JSON.parse(localStorage.getItem(STORAGE.selected)) || {}; } catch {}
+  try { saved = JSON.parse(localStorage.getItem(selectionStorageKey())) || {}; } catch {}
   saved[level] = [...ids];
-  localStorage.setItem(STORAGE.selected, JSON.stringify(saved));
+  localStorage.setItem(selectionStorageKey(), JSON.stringify(saved));
 }
 
 function renderPlayerInputs(values) {
@@ -96,15 +103,21 @@ function updateSelectedCount() {
   $("#selectedCount").textContent = checked.length;
   $("#startGameBtn").disabled = checked.length === 0;
   $("#setupHint").textContent = checked.length
-    ? checked.length < 30 ? `${checked.length} tantangan terpilih akan diulang secara acak hingga mengisi 30 kotak.` : "Tantangan akan diacak merata, 3 jebakan pada setiap baris."
+    ? selectedGameMode === "cards"
+      ? `${checked.length} kartu akan dikocok dan dimainkan tanpa pengulangan dalam satu ronde.`
+      : checked.length < 30 ? `${checked.length} tantangan terpilih akan diulang secara acak hingga mengisi 30 kotak.` : "Tantangan akan diacak merata, 3 jebakan pada setiap baris."
     : "Pilih minimal satu tantangan untuk memulai.";
   saveSelected(new Set(checked.map((input) => input.value)));
 }
 
 function openSetup(level) {
   selectedLevel = Number(level);
-  const levelText = selectedLevel === 1 ? "LEVEL 1 · ROMANTIS" : "LEVEL 2 · HOT & BERANI · 18+";
+  const prefix = selectedGameMode === "cards" ? "KARTU TANTANGAN" : "ULAR TANGGA";
+  const levelText = selectedLevel === 1 ? `${prefix} · LEVEL 1 · ROMANTIS` : `${prefix} · LEVEL 2 · HOT & BERANI · 18+`;
   $("#setupEyebrow").textContent = levelText;
+  $("#selectionTitle").textContent = selectedGameMode === "cards" ? "Pilih kartu" : "Pilih jebakan";
+  $("#selectionDescription").textContent = selectedGameMode === "cards" ? "akan dikocok menjadi satu dek" : "akan mengisi 30 kotak";
+  $("#startGameBtn").textContent = selectedGameMode === "cards" ? "Kocok Kartu & Mulai" : "Acak Papan & Mulai";
   renderPlayerInputs();
   renderChallengeList();
   showScreen("setupScreen");
@@ -168,6 +181,7 @@ function startGame() {
   const selectedIds = new Set($$("#challengeList input:checked").map((input) => input.value));
   const selectedChallenges = getChallenges().filter((item) => selectedIds.has(item.id));
   if (!selectedChallenges.length) return;
+  if (selectedGameMode === "cards") return startCardGame(names, selectedChallenges);
   game = {
     level: selectedLevel,
     players: names.map((name, index) => ({ name, color: COLORS[index], position: 1 })),
@@ -186,9 +200,11 @@ function saveGame() {
 
 function updateResumeButton() {
   $("#resumeBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.game));
+  $("#resumeCardsBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.cardGame));
 }
 
 function enterGame() {
+  selectedGameMode = "snake";
   selectedLevel = Number(game.level);
   $("#gameLevelLabel").textContent = selectedLevel === 1 ? "LEVEL 1 · ROMANTIS" : "LEVEL 2 · HOT & BERANI";
   renderBoard();
@@ -288,7 +304,7 @@ async function movePlayer(steps) {
   }
   saveGame();
   const challenge = game.trapMap[player.position];
-  if (challenge) openChallenge(challenge, player);
+  if (challenge) openChallenge(challenge, player, `Kotak ${player.position}`, "snake");
   else finishTurn();
 }
 
@@ -303,8 +319,9 @@ async function travelSpecial(player, destination, direction, type) {
   }
 }
 
-function openChallenge(challenge, player) {
-  $("#challengePlayer").textContent = `Giliran ${player.name} · Kotak ${player.position}`;
+function openChallenge(challenge, player, contextLabel = "", owner = "snake") {
+  challengeOwner = owner;
+  $("#challengePlayer").textContent = `Giliran ${player.name}${contextLabel ? ` · ${contextLabel}` : ""}`;
   $("#challengeText").textContent = challenge.text;
   $("#challengeTypeBadge").textContent = challenge.timed ? "⏱ TANTANGAN TIMER" : "⚡ TANTANGAN LANGSUNG";
   $("#timerControls").classList.toggle("hidden", !challenge.timed);
@@ -343,7 +360,8 @@ function closeChallenge() {
   clearInterval(timerId);
   $("#challengeModal").classList.add("hidden");
   $("#timerDisplay").classList.remove("finished");
-  finishTurn();
+  if (challengeOwner === "cards") finishCardTurn();
+  else finishTurn();
 }
 
 function finishTurn() {
@@ -368,6 +386,117 @@ function resetToSetup() {
   if (!confirm("Mulai ulang? Posisi permainan saat ini akan dihapus.")) return;
   localStorage.removeItem(STORAGE.game);
   game = null;
+  selectedGameMode = "snake";
+  openSetup(selectedLevel);
+}
+
+function openLevelSelection(mode) {
+  selectedGameMode = mode;
+  const isCards = mode === "cards";
+  $("#levelEyebrow").textContent = isCards ? "KARTU TANTANGAN PASANGAN" : "ULAR TANGGA PASANGAN";
+  $("#levelDescription").textContent = isCards
+    ? "Pilih suasana kartu yang ingin kalian mainkan malam ini."
+    : "Keduanya memakai papan yang sama, tetapi tantangannya berbeda.";
+  showScreen("levelScreen");
+}
+
+function startCardGame(names, selectedChallenges) {
+  cardGame = {
+    level: selectedLevel,
+    players: names.map((name, index) => ({ name, color: COLORS[index], completed: 0 })),
+    currentIndex: Math.floor(Math.random() * names.length),
+    sourceChallenges: selectedChallenges,
+    remainingDeck: shuffle(selectedChallenges),
+    drawnCount: 0
+  };
+  saveCardGame();
+  enterCardGame();
+}
+
+function saveCardGame() {
+  if (cardGame) localStorage.setItem(STORAGE.cardGame, JSON.stringify(cardGame));
+  updateResumeButton();
+}
+
+function enterCardGame() {
+  selectedGameMode = "cards";
+  selectedLevel = Number(cardGame.level);
+  $("#cardGameLevelLabel").textContent = selectedLevel === 1 ? "KARTU · LEVEL 1 · ROMANTIS" : "KARTU · LEVEL 2 · HOT & BERANI";
+  renderCardGameState();
+  showScreen("cardGameScreen", false);
+}
+
+function renderCardGameState() {
+  const current = cardGame.players[cardGame.currentIndex];
+  $("#cardTurnLabel").textContent = `Giliran ${current.name}`;
+  $("#cardsRemaining").textContent = cardGame.remainingDeck.length;
+  $("#cardDeckStatus").textContent = cardGame.remainingDeck.length
+    ? `${cardGame.remainingDeck.length} kartu tersisa di dalam dek`
+    : "Semua kartu sudah dimainkan";
+  $("#cardPlayerStatus").innerHTML = cardGame.players.map((player, index) => `
+    <div class="status-card ${index === cardGame.currentIndex ? "current" : ""}" style="--token:${player.color}">
+      <span class="status-token">${index + 1}</span>
+      <span><strong>${escapeHtml(player.name)}</strong><small>${player.completed} tantangan selesai</small></span>
+      ${index === cardGame.currentIndex ? `<b>GILIRAN</b>` : ""}
+    </div>`).join("");
+  $("#drawCardBtn").disabled = busy || !cardGame.remainingDeck.length;
+}
+
+async function drawChallengeCard() {
+  if (busy || !cardGame || !cardGame.remainingDeck.length) return;
+  busy = true;
+  $("#drawCardBtn").disabled = true;
+  const deck = $("#cardDeck");
+  deck.classList.remove("drawing");
+  void deck.offsetWidth;
+  deck.classList.add("drawing");
+  $("#cardDeckStatus").textContent = "Mengambil kartu…";
+  beep(360, 0.07, "square", 0.035);
+  setTimeout(() => beep(520, 0.09, "square", 0.04), 300);
+  await wait(850);
+  deck.classList.remove("drawing");
+  const challenge = cardGame.remainingDeck.pop();
+  cardGame.drawnCount += 1;
+  saveCardGame();
+  renderCardGameState();
+  openChallenge(challenge, cardGame.players[cardGame.currentIndex], `Kartu ${cardGame.drawnCount}`, "cards");
+}
+
+function finishCardTurn() {
+  const player = cardGame.players[cardGame.currentIndex];
+  player.completed += 1;
+  cardGame.currentIndex = (cardGame.currentIndex + 1) % cardGame.players.length;
+  busy = false;
+  if (!cardGame.remainingDeck.length) {
+    localStorage.removeItem(STORAGE.cardGame);
+    updateResumeButton();
+    $("#cardRoundModal").classList.remove("hidden");
+    victorySound();
+    renderCardGameState();
+    return;
+  }
+  saveCardGame();
+  renderCardGameState();
+  $("#cardDeckStatus").textContent = `Giliran ${cardGame.players[cardGame.currentIndex].name}, ambil satu kartu`;
+}
+
+function shuffleCardRoundAgain() {
+  cardGame.players.forEach((player) => { player.completed = 0; });
+  cardGame.remainingDeck = shuffle(cardGame.sourceChallenges);
+  cardGame.drawnCount = 0;
+  cardGame.currentIndex = Math.floor(Math.random() * cardGame.players.length);
+  busy = false;
+  $("#cardRoundModal").classList.add("hidden");
+  saveCardGame();
+  renderCardGameState();
+  beep(520, 0.1); setTimeout(() => beep(720, 0.13), 110);
+}
+
+function resetCardGameToSetup() {
+  if (!confirm("Atur ulang kartu? Ronde yang sedang berjalan akan dihapus.")) return;
+  localStorage.removeItem(STORAGE.cardGame);
+  cardGame = null;
+  selectedGameMode = "cards";
   openSetup(selectedLevel);
 }
 
@@ -396,7 +525,8 @@ $("#backBtn").addEventListener("click", goBack);
 $("#brandBtn").addEventListener("click", goHome);
 $("#muteBtn").addEventListener("click", () => { muted = !muted; localStorage.setItem(STORAGE.mute, JSON.stringify(muted)); $("#muteBtn").textContent = muted ? "🔇" : "🔊"; $("#muteBtn").setAttribute("aria-label", muted ? "Nyalakan suara" : "Matikan suara"); });
 $$('[data-game]').forEach((button) => button.addEventListener("click", () => {
-  if (button.dataset.game === "snake") return showScreen("levelScreen");
+  if (button.dataset.game === "snake") return openLevelSelection("snake");
+  if (button.dataset.game === "cards") return openLevelSelection("cards");
   const data = { wheel: ["🎡", "Spin Wheel"], ludo: ["🎯", "Ludo"], cards: ["🃏", "Kartu Tantangan"], words: ["💬", "Tebak Kata"] }[button.dataset.game];
   $("#placeholderIcon").textContent = data[0]; $("#placeholderTitle").textContent = data[1]; showScreen("placeholderScreen");
 }));
@@ -418,12 +548,18 @@ $("#customChallengeForm").addEventListener("submit", addCustomChallenge);
 $("#startGameBtn").addEventListener("click", startGame);
 $("#rollBtn").addEventListener("click", rollDice);
 $("#newGameBtn").addEventListener("click", resetToSetup);
+$("#newCardGameBtn").addEventListener("click", resetCardGameToSetup);
+$("#drawCardBtn").addEventListener("click", drawChallengeCard);
+$("#cardDeck").addEventListener("click", drawChallengeCard);
 $("#doneChallengeBtn").addEventListener("click", closeChallenge);
 $("#startTimerBtn").addEventListener("click", startTimer);
 $$('[data-duration]').forEach((button) => button.addEventListener("click", () => { chosenDuration = Number(button.dataset.duration); $$('[data-duration]').forEach((item) => item.classList.toggle("selected", item === button)); $("#timerValue").textContent = formatTime(chosenDuration); }));
 $("#resumeBtn").addEventListener("click", () => { try { game = JSON.parse(localStorage.getItem(STORAGE.game)); if (game) enterGame(); } catch { localStorage.removeItem(STORAGE.game); updateResumeButton(); } });
+$("#resumeCardsBtn").addEventListener("click", () => { try { cardGame = JSON.parse(localStorage.getItem(STORAGE.cardGame)); if (cardGame) enterCardGame(); } catch { localStorage.removeItem(STORAGE.cardGame); updateResumeButton(); } });
 $("#playAgainBtn").addEventListener("click", () => { $("#winnerModal").classList.add("hidden"); game = null; openSetup(selectedLevel); });
-$$('[data-back-home]').forEach((button) => button.addEventListener("click", () => { $("#winnerModal").classList.add("hidden"); goHome(); }));
+$("#shuffleAgainBtn").addEventListener("click", shuffleCardRoundAgain);
+$("#cardSettingsBtn").addEventListener("click", () => { $("#cardRoundModal").classList.add("hidden"); selectedGameMode = "cards"; cardGame = null; openSetup(selectedLevel); });
+$$('[data-back-home]').forEach((button) => button.addEventListener("click", () => { $("#winnerModal").classList.add("hidden"); $("#cardRoundModal").classList.add("hidden"); goHome(); }));
 
 $("#muteBtn").textContent = muted ? "🔇" : "🔊";
 renderPlayerInputs();
