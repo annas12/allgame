@@ -310,7 +310,8 @@ function openChallenge(challenge, player) {
   $("#timerControls").classList.toggle("hidden", !challenge.timed);
   $("#timerDisplay").classList.add("hidden");
   $("#startTimerBtn").disabled = false;
-  $("#doneChallengeBtn").disabled = false;
+  $("#doneChallengeBtn").disabled = challenge.timed;
+  $$("[data-duration]").forEach((button) => { button.disabled = false; });
   $("#timerValue").textContent = formatTime(chosenDuration);
   $("#challengeModal").classList.remove("hidden");
   beep(620, 0.12); setTimeout(() => beep(820, 0.15), 120);
@@ -321,6 +322,7 @@ function startTimer() {
   let remaining = chosenDuration;
   $("#timerDisplay").classList.remove("hidden");
   $("#startTimerBtn").disabled = true;
+  $$("[data-duration]").forEach((button) => { button.disabled = true; });
   $("#timerStatus").textContent = "Waktu berjalan…";
   $("#timerValue").textContent = formatTime(remaining);
   timerId = setInterval(() => {
@@ -331,6 +333,7 @@ function startTimer() {
       clearInterval(timerId);
       $("#timerStatus").textContent = "Waktu habis! Tekan DONE";
       $("#timerDisplay").classList.add("finished");
+      $("#doneChallengeBtn").disabled = false;
       beep(950, 0.16, "sine", 0.08); setTimeout(() => beep(1150, 0.25, "sine", 0.08), 180);
     }
   }, 1000);
