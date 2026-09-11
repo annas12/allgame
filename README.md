@@ -1,6 +1,6 @@
 # Game Pasangan
 
-Kumpulan lima permainan untuk pasangan. Versi pertama menyelesaikan game **Ular Tangga** dengan dua level tantangan.
+Kumpulan lima permainan untuk pasangan. Saat ini game **Ular Tangga** dan **Kartu Tantangan** sudah dapat dimainkan dengan dua level tantangan.
 
 ## Fitur Ular Tangga
 
@@ -11,6 +11,15 @@ Kumpulan lima permainan untuk pasangan. Versi pertama menyelesaikan game **Ular 
 - Tantangan timer mendukung 10, 20, 30, atau 60 detik.
 - Animasi dadu, pergerakan pion, efek suara, tombol mute, dan aturan memantul jika melewati kotak 100.
 - Pengaturan serta permainan aktif tersimpan di `localStorage` browser.
+
+## Fitur Kartu Tantangan
+
+- Memakai daftar Level 1 romantis dan Level 2 khusus pasangan dewasa yang sama.
+- Pengaturan 2–4 pemain, pilihan kartu, serta tantangan buatan sendiri.
+- Animasi mengambil kartu dan pergantian pemain otomatis.
+- Kartu dimainkan tanpa pengulangan sampai satu ronde selesai.
+- Tantangan timer mendukung 10, 20, 30, atau 60 detik.
+- Ronde aktif tersimpan di browser dan bisa dilanjutkan setelah halaman dibuka ulang.
 
 ## Menjalankan
 
