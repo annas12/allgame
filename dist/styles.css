@@ -171,6 +171,19 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .card-rule { display: grid; grid-template-columns: 35px 1fr; gap: 11px; align-items: center; margin-top: 10px; padding: 11px; border-top: 1px solid var(--line); }
 .card-rule span { color: #ff8db7; font-size: .75rem; font-weight: 950; }.card-rule p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.4; }
 
+.wheel-play-layout { min-height: 650px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; align-items: stretch; }
+.wheel-arena { position: relative; min-height: 620px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 44px 24px 34px; border: 1px solid var(--line); border-radius: 30px; background: radial-gradient(circle at 50% 45%, rgba(255,61,129,.2), transparent 34%), linear-gradient(145deg, rgba(69,15,82,.82), rgba(25,5,35,.9)); box-shadow: var(--shadow); }
+.wheel-arena::before { content: ""; position: absolute; width: 420px; height: 420px; border: 1px solid rgba(255,255,255,.07); border-radius: 50%; box-shadow: 0 0 80px rgba(255,61,129,.16); pointer-events: none; }
+.wheel-pointer { position: relative; z-index: 8; width: 68px; height: 58px; margin-bottom: -25px; display: grid; place-items: start center; color: #ffd166; font-size: 3.6rem; line-height: .72; filter: drop-shadow(0 5px 5px rgba(0,0,0,.45)); pointer-events: none; }
+.challenge-wheel { --wheel-gradient: conic-gradient(#ff3d81 0 60deg,#9c4dff 60deg 120deg,#ff8a4c 120deg 180deg,#d52eaa 180deg 240deg,#6d45d9 240deg 300deg,#ef315e 300deg); --wheel-rotation: 0deg; --wheel-counter-rotation: 0deg; position: relative; width: min(430px, 75vw); aspect-ratio: 1; padding: 0; border: 12px solid #f5bdd8; border-radius: 50%; background: var(--wheel-gradient); box-shadow: 0 22px 55px rgba(0,0,0,.5), 0 0 0 7px #72205f, 0 0 45px rgba(255,61,129,.33), inset 0 0 0 4px rgba(255,255,255,.32); transform: rotate(var(--wheel-rotation)); transition: transform 4.2s cubic-bezier(.12,.68,.08,1); cursor: pointer; }
+.challenge-wheel::before { content: ""; position: absolute; inset: 8px; border: 2px dashed rgba(255,255,255,.5); border-radius: 50%; }
+.wheel-rim { position: absolute; inset: -8px; border: 5px dotted rgba(255,255,255,.88); border-radius: 50%; }
+.wheel-center { position: absolute; z-index: 3; inset: 50% auto auto 50%; width: 126px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 7px solid rgba(255,255,255,.88); border-radius: 50%; background: radial-gradient(circle at 35% 25%, #ff8ab5, #7c1f72 70%); box-shadow: 0 10px 25px rgba(0,0,0,.4); transform: translate(-50%,-50%) rotate(var(--wheel-counter-rotation)); transition: transform 4.2s cubic-bezier(.12,.68,.08,1); }
+.wheel-center strong { font-size: 2rem; line-height: 1; }.wheel-center small { margin-top: 5px; font-size: .62rem; font-weight: 950; letter-spacing: .13em; }
+.challenge-wheel.spinning { pointer-events: none; }
+.wheel-spin-btn { min-width: min(300px, 100%); margin-top: 0; }
+.wheel-sidebar .card-round-stat span { min-width: 44px; }
+
 .modal { position: fixed; z-index: 100; inset: 0; padding: 20px; display: grid; place-items: center; background: rgba(8,0,13,.76); backdrop-filter: blur(10px); animation: modalIn .22s ease both; }
 @keyframes modalIn { from { opacity: 0; } }
 .modal-card { width: min(500px, 100%); padding: 30px; border: 1px solid rgba(255,255,255,.18); border-radius: 28px; background: radial-gradient(circle at 90% 0, rgba(255,61,129,.2), transparent 30%), #2a0a37; box-shadow: 0 30px 90px rgba(0,0,0,.6); text-align: center; }
@@ -198,7 +211,9 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   .app-shell { padding: 25px 14px 80px; }
   .game-grid, .level-grid, .setup-layout, .play-layout { grid-template-columns: 1fr; }
   .card-play-layout { min-height: auto; grid-template-columns: 1fr; }
+  .wheel-play-layout { min-height: auto; grid-template-columns: 1fr; }
   .deck-arena { min-height: 560px; }
+  .wheel-arena { min-height: 600px; }
   .card-sidebar { display: grid; grid-template-columns: 150px 1fr; gap: 10px 14px; }
   .card-round-stat { grid-row: 1 / span 2; margin: 0; flex-direction: column; justify-content: center; }
   .card-sidebar .player-status { grid-column: 2; }
@@ -244,6 +259,11 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   .deck-heart { font-size: 4.7rem; }
   .deck-card-front strong { font-size: 1.25rem; }
   .card-sidebar { grid-template-columns: 112px 1fr; padding: 13px; }
+  .wheel-arena { min-height: 520px; padding-inline: 12px; }
+  .challenge-wheel { width: min(360px, 76vw); border-width: 9px; }
+  .wheel-center { width: 102px; border-width: 5px; }
+  .wheel-center strong { font-size: 1.6rem; }
+  .wheel-pointer { width: 58px; font-size: 3rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
