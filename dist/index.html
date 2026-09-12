@@ -40,6 +40,11 @@
           <span><strong>Lanjutkan Kartu Tantangan</strong><small>Ronde terakhir tersimpan di perangkat ini</small></span>
           <span>›</span>
         </button>
+        <button id="resumeWheelBtn" class="resume-card resume-wheel hidden">
+          <span class="resume-icon">🎡</span>
+          <span><strong>Lanjutkan Spin Wheel</strong><small>Permainan terakhir tersimpan di perangkat ini</small></span>
+          <span>›</span>
+        </button>
 
         <div class="game-grid">
           <button class="game-card featured" data-game="snake">
@@ -47,8 +52,8 @@
             <span class="game-copy"><strong>Ular Tangga</strong><small>Naik, turun, dan jalani tantangannya</small></span>
             <span class="play-pill">MAIN</span>
           </button>
-          <button class="game-card" data-game="wheel">
-            <span class="game-icon">🎡</span><span class="game-copy"><strong>Spin Wheel</strong><small>Putar dan lihat tantanganmu</small></span>
+          <button class="game-card available" data-game="wheel">
+            <span class="game-icon">🎡</span><span class="game-copy"><strong>Spin Wheel</strong><small>Putar dan lihat tantanganmu</small></span><span class="play-pill">MAIN</span>
           </button>
           <button class="game-card" data-game="ludo">
             <span class="game-icon">🎯</span><span class="game-copy"><strong>Ludo</strong><small>Adu strategi bersama pasangan</small></span>
@@ -163,6 +168,31 @@
             <div class="card-rule"><span>01</span><p>Ambil satu kartu saat giliranmu.</p></div>
             <div class="card-rule"><span>02</span><p>Lakukan tantangannya sampai selesai.</p></div>
             <div class="card-rule"><span>03</span><p>Tekan DONE untuk berganti giliran.</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="wheelGameScreen" class="screen wheel-game-screen">
+        <div class="game-head">
+          <div><p id="wheelGameLevelLabel" class="eyebrow">LEVEL 1 · ROMANTIS</p><h2 id="wheelTurnLabel">Giliran Pemain 1</h2></div>
+          <button id="newWheelGameBtn" class="secondary-btn small">Ulangi</button>
+        </div>
+        <div class="wheel-play-layout">
+          <div class="wheel-arena">
+            <div class="wheel-pointer" aria-hidden="true">▼</div>
+            <button id="challengeWheel" class="challenge-wheel" aria-label="Putar roda tantangan">
+              <span class="wheel-rim"></span>
+              <span class="wheel-center"><strong id="wheelChoiceCount">30</strong><small>PILIHAN</small></span>
+            </button>
+            <p id="wheelMessage" class="deck-status">Roda siap diputar</p>
+            <button id="spinWheelBtn" class="primary-btn wheel-spin-btn">🎡 PUTAR RODA</button>
+          </div>
+          <aside class="card-sidebar wheel-sidebar">
+            <div class="card-round-stat"><span id="wheelSpinCount">0</span><small>Total putaran</small></div>
+            <div id="wheelPlayerStatus" class="player-status"></div>
+            <div class="card-rule"><span>01</span><p>Putar roda saat giliranmu.</p></div>
+            <div class="card-rule"><span>02</span><p>Tantangan dipilih secara acak.</p></div>
+            <div class="card-rule"><span>03</span><p>Selesaikan lalu tekan DONE.</p></div>
           </aside>
         </div>
       </section>
