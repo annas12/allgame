@@ -1,6 +1,6 @@
 # Game Pasangan
 
-Kumpulan lima permainan untuk pasangan. Saat ini game **Ular Tangga** dan **Kartu Tantangan** sudah dapat dimainkan dengan dua level tantangan.
+Kumpulan lima permainan untuk pasangan. Saat ini game **Ular Tangga**, **Kartu Tantangan**, dan **Spin Wheel** sudah dapat dimainkan dengan dua level tantangan.
 
 ## Fitur Ular Tangga
 
@@ -20,6 +20,15 @@ Kumpulan lima permainan untuk pasangan. Saat ini game **Ular Tangga** dan **Kart
 - Kartu dimainkan tanpa pengulangan sampai satu ronde selesai.
 - Tantangan timer mendukung 10, 20, 30, atau 60 detik.
 - Ronde aktif tersimpan di browser dan bisa dilanjutkan setelah halaman dibuka ulang.
+
+## Fitur Spin Wheel
+
+- Roda animasi dengan peluang yang sama untuk setiap tantangan terpilih.
+- Level 1 romantis dan Level 2 khusus pasangan dewasa.
+- Mendukung 2–4 pemain dengan pergantian giliran otomatis.
+- Tantangan yang baru keluar tidak langsung diulang pada putaran berikutnya.
+- Jumlah putaran dan tantangan selesai setiap pemain ditampilkan.
+- Tantangan langsung, pilihan timer, efek suara, mute, serta penyimpanan permainan di browser.
 
 ## Menjalankan
 
