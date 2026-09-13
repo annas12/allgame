@@ -1,6 +1,6 @@
 # Game Pasangan
 
-Kumpulan lima permainan untuk pasangan. Saat ini game **Ular Tangga**, **Kartu Tantangan**, dan **Spin Wheel** sudah dapat dimainkan dengan dua level tantangan.
+Kumpulan lima permainan untuk pasangan. Saat ini game **Ular Tangga**, **Kartu Tantangan**, **Spin Wheel**, dan **Tebak Kata** sudah dapat dimainkan dengan dua level konten.
 
 ## Fitur Ular Tangga
 
@@ -29,6 +29,16 @@ Kumpulan lima permainan untuk pasangan. Saat ini game **Ular Tangga**, **Kartu T
 - Tantangan yang baru keluar tidak langsung diulang pada putaran berikutnya.
 - Jumlah putaran dan tantangan selesai setiap pemain ditampilkan.
 - Tantangan langsung, pilihan timer, efek suara, mute, serta penyimpanan permainan di browser.
+
+## Fitur Tebak Kata
+
+- Pemain melihat satu kata lalu menjelaskannya tanpa menyebut jawaban.
+- Level 1 romantis dan Level 2 hot/vulgar khusus pasangan dewasa.
+- Ronde 30 detik dengan hitung mundur, tombol BENAR dan LEWATI.
+- Mendukung 2–4 pemain, skor per pemain, dan pergantian giliran.
+- Kata dapat dipilih atau dinonaktifkan sebelum bermain.
+- Skor serta ronde aktif tersimpan di browser dan dapat dilanjutkan.
+- Daftar kata bawaan mudah diubah melalui `dist/js/words.js`.
 
 ## Menjalankan
 

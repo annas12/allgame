@@ -45,6 +45,11 @@
           <span><strong>Lanjutkan Spin Wheel</strong><small>Permainan terakhir tersimpan di perangkat ini</small></span>
           <span>›</span>
         </button>
+        <button id="resumeWordsBtn" class="resume-card resume-words hidden">
+          <span class="resume-icon">💬</span>
+          <span><strong>Lanjutkan Tebak Kata</strong><small>Skor dan giliran terakhir tersimpan</small></span>
+          <span>›</span>
+        </button>
 
         <div class="game-grid">
           <button class="game-card featured" data-game="snake">
@@ -61,8 +66,8 @@
           <button class="game-card available" data-game="cards">
             <span class="game-icon">🃏</span><span class="game-copy"><strong>Kartu Tantangan</strong><small>Ambil satu dan berani lakukan</small></span><span class="play-pill">MAIN</span>
           </button>
-          <button class="game-card" data-game="words">
-            <span class="game-icon">💬</span><span class="game-copy"><strong>Tebak Kata</strong><small>Seberapa kompak kalian?</small></span>
+          <button class="game-card available" data-game="words">
+            <span class="game-icon">💬</span><span class="game-copy"><strong>Tebak Kata</strong><small>Jelaskan tanpa menyebut jawabannya</small></span><span class="play-pill">MAIN</span>
           </button>
         </div>
       </section>
@@ -193,6 +198,74 @@
             <div class="card-rule"><span>01</span><p>Putar roda saat giliranmu.</p></div>
             <div class="card-rule"><span>02</span><p>Tantangan dipilih secara acak.</p></div>
             <div class="card-rule"><span>03</span><p>Selesaikan lalu tekan DONE.</p></div>
+          </aside>
+        </div>
+      </section>
+
+
+      <section id="wordSetupScreen" class="screen">
+        <div class="section-heading compact">
+          <p id="wordSetupEyebrow" class="eyebrow">TEBAK KATA · LEVEL 1 · ROMANTIS</p>
+          <h2>Siapkan permainan</h2>
+          <p>Satu pemain melihat kata dan menjelaskannya. Pasangan menebak sebanyak mungkin dalam 30 detik.</p>
+        </div>
+        <div class="setup-layout">
+          <div class="setup-panel">
+            <div class="panel-title"><span>1</span><div><h3>Pemain</h3><p>Minimal 2, maksimal 4 pemain</p></div></div>
+            <div id="wordPlayerInputs" class="player-inputs"></div>
+            <button id="addWordPlayerBtn" class="secondary-btn">＋ Tambah pemain</button>
+            <div class="word-rules">
+              <div><b>30</b><span>detik per ronde</span></div>
+              <div><b>+1</b><span>setiap jawaban benar</span></div>
+            </div>
+          </div>
+          <div class="setup-panel challenge-panel">
+            <div class="panel-title"><span>2</span><div><h3>Pilih kata</h3><p><strong id="selectedWordCount">40</strong> kata aktif</p></div></div>
+            <div class="challenge-tools">
+              <button id="selectAllWordsBtn" class="text-btn">Pilih semua</button>
+              <button id="clearAllWordsBtn" class="text-btn">Kosongkan</button>
+            </div>
+            <div id="wordList" class="challenge-list word-list"></div>
+          </div>
+        </div>
+        <div class="sticky-start">
+          <p id="wordSetupHint">Kata akan dikocok dan tidak langsung berulang.</p>
+          <button id="startWordGameBtn" class="primary-btn">Mulai Tebak Kata</button>
+        </div>
+      </section>
+
+      <section id="wordGameScreen" class="screen word-game-screen">
+        <div class="game-head">
+          <div><p id="wordGameLevelLabel" class="eyebrow">TEBAK KATA · LEVEL 1 · ROMANTIS</p><h2 id="wordTurnLabel">Giliran Pemain 1</h2></div>
+          <button id="newWordGameBtn" class="secondary-btn small">Ulangi</button>
+        </div>
+        <div class="word-play-layout">
+          <div class="word-arena">
+            <p id="wordRoleText" class="word-role">Bersiap menjelaskan kata</p>
+            <div id="wordTimer" class="word-timer">00:30</div>
+            <div id="wordCard" class="word-card">
+              <span id="wordCardIcon">💬</span>
+              <small id="wordCardLabel">RONDE SIAP</small>
+              <strong id="currentWord">Tekan tombol mulai</strong>
+            </div>
+            <div id="wordCountdown" class="word-countdown hidden">3</div>
+            <button id="startWordRoundBtn" class="primary-btn word-start-btn">▶ MULAI RONDE 30 DETIK</button>
+            <div id="wordAnswerControls" class="word-answer-controls hidden">
+              <button id="skipWordBtn" class="secondary-btn">Lewati</button>
+              <button id="correctWordBtn" class="primary-btn">BENAR +1</button>
+            </div>
+            <div id="wordRoundResult" class="word-round-result hidden">
+              <span>Ronde selesai</span>
+              <strong id="wordRoundScore">0 kata benar</strong>
+              <button id="nextWordTurnBtn" class="primary-btn">Lanjut Pemain Berikutnya</button>
+            </div>
+          </div>
+          <aside class="card-sidebar word-sidebar">
+            <div class="card-round-stat"><span id="wordRoundNumber">1</span><small>Total ronde</small></div>
+            <div id="wordPlayerStatus" class="player-status"></div>
+            <div class="card-rule"><span>01</span><p>Jelaskan kata tanpa menyebut kata jawabannya.</p></div>
+            <div class="card-rule"><span>02</span><p>Tekan BENAR saat pasangan berhasil menebak.</p></div>
+            <div class="card-rule"><span>03</span><p>Tekan LEWATI bila kata terlalu sulit.</p></div>
           </aside>
         </div>
       </section>

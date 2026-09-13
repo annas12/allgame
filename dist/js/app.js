@@ -1,8 +1,9 @@
 import { LEVELS } from "./challenges.js";
+import { WORD_LEVELS } from "./words.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const STORAGE = { custom: "gp-custom-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1" };
+const STORAGE = { custom: "gp-custom-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedWords: "gp-word-selected-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1" };
 const COLORS = ["#ff3d81", "#6ee7ff", "#ffd166", "#9bff8a"];
 const LADDER = { 3: 22, 8: 26, 20: 41, 28: 55, 36: 57, 51: 72, 63: 81, 71: 92 };
 const SNAKE = { 17: 4, 31: 12, 47: 25, 59: 38, 69: 49, 78: 56, 88: 67, 97: 76 };
@@ -15,7 +16,9 @@ let playerCount = 2;
 let game = null;
 let cardGame = null;
 let wheelGame = null;
+let wordGame = null;
 let wheelRotation = 0;
+let wordTimerId = null;
 let challengeOwner = "snake";
 let busy = false;
 let timerId = null;
@@ -30,7 +33,7 @@ function showScreen(id, remember = true) {
   if (remember && currentScreen !== id) screenHistory.push(currentScreen);
   screens.forEach((screen) => screen.classList.toggle("active", screen.id === id));
   currentScreen = id;
-  $("#backBtn").classList.toggle("hidden", id === "homeScreen" || id === "gameScreen" || id === "cardGameScreen" || id === "wheelGameScreen");
+  $("#backBtn").classList.toggle("hidden", id === "homeScreen" || id === "gameScreen" || id === "cardGameScreen" || id === "wheelGameScreen" || id === "wordGameScreen");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -118,6 +121,7 @@ function updateSelectedCount() {
 
 function openSetup(level) {
   selectedLevel = Number(level);
+  if (selectedGameMode === "words") return openWordSetup();
   const prefix = selectedGameMode === "cards" ? "KARTU TANTANGAN" : selectedGameMode === "wheel" ? "SPIN WHEEL" : "ULAR TANGGA";
   const levelText = selectedLevel === 1 ? `${prefix} · LEVEL 1 · ROMANTIS` : `${prefix} · LEVEL 2 · HOT & BERANI · 18+`;
   $("#setupEyebrow").textContent = levelText;
@@ -209,6 +213,7 @@ function updateResumeButton() {
   $("#resumeBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.game));
   $("#resumeCardsBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.cardGame));
   $("#resumeWheelBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.wheelGame));
+  $("#resumeWordsBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.wordGame));
 }
 
 function enterGame() {
@@ -404,7 +409,8 @@ function openLevelSelection(mode) {
   const labels = {
     snake: ["ULAR TANGGA PASANGAN", "Keduanya memakai papan yang sama, tetapi tantangannya berbeda."],
     cards: ["KARTU TANTANGAN PASANGAN", "Pilih suasana kartu yang ingin kalian mainkan malam ini."],
-    wheel: ["SPIN WHEEL PASANGAN", "Pilih level, atur tantangan, lalu biarkan roda menentukan giliran kalian."]
+    wheel: ["SPIN WHEEL PASANGAN", "Pilih level, atur tantangan, lalu biarkan roda menentukan giliran kalian."],
+    words: ["TEBAK KATA PASANGAN", "Pilih level kata, lalu buktikan seberapa kompak kalian dalam 30 detik."]
   }[mode];
   $("#levelEyebrow").textContent = labels[0];
   $("#levelDescription").textContent = labels[1];
@@ -625,6 +631,236 @@ function resetWheelGameToSetup() {
   openSetup(selectedLevel);
 }
 
+
+function getSavedSelectedWords(level = selectedLevel) {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE.selectedWords)) || {}; } catch {}
+  const allIds = WORD_LEVELS[level].words.map((item) => item.id);
+  return new Set(Array.isArray(saved[level]) ? saved[level].filter((id) => allIds.includes(id)) : allIds);
+}
+
+function saveSelectedWords(ids, level = selectedLevel) {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE.selectedWords)) || {}; } catch {}
+  saved[level] = [...ids];
+  localStorage.setItem(STORAGE.selectedWords, JSON.stringify(saved));
+}
+
+function renderWordPlayerInputs(values) {
+  const holder = $("#wordPlayerInputs");
+  const oldValues = values || $("#wordPlayerInputs .player-name").map((input) => input.value);
+  holder.innerHTML = "";
+  for (let index = 0; index < playerCount; index += 1) {
+    const row = document.createElement("div");
+    row.className = "player-row";
+    row.innerHTML = `<span class="player-color" style="--player-color:${COLORS[index]}">${index + 1}</span><input class="player-name" maxlength="18" value="${escapeHtml(oldValues[index] || `Pemain ${index + 1}`)}" aria-label="Nama pemain ${index + 1}">${playerCount > 2 ? `<button class="remove-player" data-remove-word-player="${index}" aria-label="Hapus pemain ${index + 1}">×</button>` : ""}`;
+    holder.appendChild(row);
+  }
+  $("#addWordPlayerBtn").disabled = playerCount >= 4;
+}
+
+function renderWordList() {
+  const selected = getSavedSelectedWords();
+  $("#wordList").innerHTML = WORD_LEVELS[selectedLevel].words.map((word, index) => `
+    <label class="challenge-option word-option">
+      <input type="checkbox" value="${word.id}" ${selected.has(word.id) ? "checked" : ""}>
+      <span class="custom-checkbox">✓</span><span class="challenge-index">${String(index + 1).padStart(2, "0")}</span>
+      <span class="challenge-option-copy"><span>${escapeHtml(word.text)}</span><small>💬 Kata tebakan</small></span>
+    </label>`).join("");
+  updateSelectedWordCount();
+}
+
+function updateSelectedWordCount() {
+  const checked = $("#wordList input:checked");
+  $("#selectedWordCount").textContent = checked.length;
+  $("#startWordGameBtn").disabled = checked.length < 2;
+  $("#wordSetupHint").textContent = checked.length < 2
+    ? "Pilih minimal 2 kata untuk memulai."
+    : `${checked.length} kata akan dikocok dan tidak langsung berulang.`;
+  saveSelectedWords(new Set(checked.map((input) => input.value)));
+}
+
+function openWordSetup() {
+  $("#wordSetupEyebrow").textContent = selectedLevel === 1
+    ? "TEBAK KATA · LEVEL 1 · ROMANTIS"
+    : "TEBAK KATA · LEVEL 2 · HOT & VULGAR · 18+";
+  renderWordPlayerInputs();
+  renderWordList();
+  showScreen("wordSetupScreen");
+}
+
+function startWordGame() {
+  const names = $("#wordPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+  const selectedIds = new Set($("#wordList input:checked").map((input) => input.value));
+  const selectedWords = WORD_LEVELS[selectedLevel].words.filter((item) => selectedIds.has(item.id));
+  if (selectedWords.length < 2) return;
+  wordGame = {
+    level: selectedLevel,
+    players: names.map((name, index) => ({ name, color: COLORS[index], score: 0 })),
+    currentIndex: Math.floor(Math.random() * names.length),
+    sourceWords: selectedWords,
+    remainingWords: shuffle(selectedWords),
+    currentWord: null,
+    phase: "ready",
+    timeLeft: 30,
+    endAt: null,
+    round: 1,
+    roundCorrect: 0,
+    roundPassed: 0
+  };
+  saveWordGame();
+  enterWordGame();
+}
+
+function saveWordGame() {
+  if (wordGame) localStorage.setItem(STORAGE.wordGame, JSON.stringify(wordGame));
+  updateResumeButton();
+}
+
+function enterWordGame() {
+  selectedGameMode = "words";
+  selectedLevel = Number(wordGame.level);
+  $("#wordGameLevelLabel").textContent = selectedLevel === 1
+    ? "TEBAK KATA · LEVEL 1 · ROMANTIS"
+    : "TEBAK KATA · LEVEL 2 · HOT & VULGAR · 18+";
+  if (wordGame.phase === "playing") {
+    const remaining = Math.max(0, Math.ceil((Number(wordGame.endAt) - Date.now()) / 1000));
+    wordGame.timeLeft = remaining;
+    if (remaining > 0) startWordTimerLoop();
+    else finishWordRound();
+  }
+  renderWordGameState();
+  showScreen("wordGameScreen", false);
+}
+
+function drawNextWord() {
+  if (!wordGame.remainingWords.length) wordGame.remainingWords = shuffle(wordGame.sourceWords);
+  let next = wordGame.remainingWords.pop();
+  if (wordGame.sourceWords.length > 1 && next?.id === wordGame.currentWord?.id) {
+    wordGame.remainingWords.unshift(next);
+    next = wordGame.remainingWords.pop();
+  }
+  wordGame.currentWord = next;
+}
+
+function renderWordGameState() {
+  const player = wordGame.players[wordGame.currentIndex];
+  const isReady = wordGame.phase === "ready";
+  const isPlaying = wordGame.phase === "playing";
+  const isSummary = wordGame.phase === "summary";
+  $("#wordTurnLabel").textContent = `Giliran ${player.name}`;
+  $("#wordRoleText").textContent = isPlaying ? `${player.name} menjelaskan · pasangan menebak` : isSummary ? "Lihat hasil ronde kalian" : `${player.name}, bersiaplah menjelaskan`;
+  $("#wordTimer").textContent = formatTime(wordGame.timeLeft);
+  $("#wordTimer").classList.toggle("urgent", isPlaying && wordGame.timeLeft <= 10);
+  $("#wordCard").classList.toggle("active", isPlaying);
+  $("#wordCardIcon").textContent = isPlaying ? "💡" : isSummary ? "✨" : "💬";
+  $("#wordCardLabel").textContent = isPlaying ? "JELASKAN KATA INI" : isSummary ? "RONDE SELESAI" : "RONDE SIAP";
+  $("#currentWord").textContent = isPlaying && wordGame.currentWord ? wordGame.currentWord.text : isSummary ? `+${wordGame.roundCorrect} poin` : "Tekan tombol mulai";
+  $("#startWordRoundBtn").classList.toggle("hidden", !isReady);
+  $("#wordAnswerControls").classList.toggle("hidden", !isPlaying);
+  $("#wordRoundResult").classList.toggle("hidden", !isSummary);
+  $("#wordRoundScore").textContent = `${wordGame.roundCorrect} kata benar · ${wordGame.roundPassed} dilewati`;
+  $("#wordRoundNumber").textContent = wordGame.round;
+  $("#wordPlayerStatus").innerHTML = wordGame.players.map((item, index) => `
+    <div class="status-card ${index === wordGame.currentIndex ? "current" : ""}" style="--token:${item.color}">
+      <span class="status-token">${index + 1}</span>
+      <span><strong>${escapeHtml(item.name)}</strong><small>${item.score} poin</small></span>
+      ${index === wordGame.currentIndex ? `<b>GILIRAN</b>` : ""}
+    </div>`).join("");
+}
+
+async function startWordRound() {
+  if (!wordGame || wordGame.phase !== "ready" || busy) return;
+  busy = true;
+  $("#startWordRoundBtn").disabled = true;
+  $("#wordCountdown").classList.remove("hidden");
+  for (const count of [3, 2, 1]) {
+    $("#wordCountdown").textContent = count;
+    beep(420 + count * 90, 0.09, "square", 0.04);
+    await wait(650);
+  }
+  $("#wordCountdown").textContent = "MULAI!";
+  beep(900, 0.15, "sine", 0.06);
+  await wait(450);
+  $("#wordCountdown").classList.add("hidden");
+  wordGame.phase = "playing";
+  wordGame.timeLeft = 30;
+  wordGame.endAt = Date.now() + 30000;
+  wordGame.roundCorrect = 0;
+  wordGame.roundPassed = 0;
+  drawNextWord();
+  busy = false;
+  $("#startWordRoundBtn").disabled = false;
+  saveWordGame();
+  renderWordGameState();
+  startWordTimerLoop();
+}
+
+function startWordTimerLoop() {
+  clearInterval(wordTimerId);
+  wordTimerId = setInterval(() => {
+    if (!wordGame || wordGame.phase !== "playing") return clearInterval(wordTimerId);
+    const remaining = Math.max(0, Math.ceil((Number(wordGame.endAt) - Date.now()) / 1000));
+    if (remaining !== wordGame.timeLeft) {
+      wordGame.timeLeft = remaining;
+      $("#wordTimer").textContent = formatTime(remaining);
+      $("#wordTimer").classList.toggle("urgent", remaining <= 10);
+      if (remaining <= 5 && remaining > 0) beep(360, 0.05, "square", 0.025);
+    }
+    if (remaining <= 0) finishWordRound();
+  }, 200);
+}
+
+function answerWord(correct) {
+  if (!wordGame || wordGame.phase !== "playing") return;
+  if (correct) {
+    wordGame.players[wordGame.currentIndex].score += 1;
+    wordGame.roundCorrect += 1;
+    beep(760, 0.08); setTimeout(() => beep(960, 0.1), 80);
+  } else {
+    wordGame.roundPassed += 1;
+    beep(260, 0.07, "square", 0.025);
+  }
+  drawNextWord();
+  saveWordGame();
+  renderWordGameState();
+}
+
+function finishWordRound() {
+  if (!wordGame || wordGame.phase === "summary") return;
+  clearInterval(wordTimerId);
+  wordGame.phase = "summary";
+  wordGame.timeLeft = 0;
+  wordGame.endAt = null;
+  saveWordGame();
+  renderWordGameState();
+  victorySound();
+}
+
+function nextWordTurn() {
+  if (!wordGame || wordGame.phase !== "summary") return;
+  wordGame.currentIndex = (wordGame.currentIndex + 1) % wordGame.players.length;
+  wordGame.round += 1;
+  wordGame.phase = "ready";
+  wordGame.timeLeft = 30;
+  wordGame.currentWord = null;
+  wordGame.roundCorrect = 0;
+  wordGame.roundPassed = 0;
+  saveWordGame();
+  renderWordGameState();
+  beep(520, 0.1); setTimeout(() => beep(720, 0.12), 100);
+}
+
+function resetWordGameToSetup() {
+  if (!confirm("Atur ulang Tebak Kata? Skor permainan saat ini akan dihapus.")) return;
+  clearInterval(wordTimerId);
+  localStorage.removeItem(STORAGE.wordGame);
+  wordGame = null;
+  busy = false;
+  selectedGameMode = "words";
+  openWordSetup();
+}
+
 function beep(frequency, duration, type = "sine", volume = 0.04) {
   if (muted) return;
   try {
@@ -653,6 +889,7 @@ $$('[data-game]').forEach((button) => button.addEventListener("click", () => {
   if (button.dataset.game === "snake") return openLevelSelection("snake");
   if (button.dataset.game === "cards") return openLevelSelection("cards");
   if (button.dataset.game === "wheel") return openLevelSelection("wheel");
+  if (button.dataset.game === "words") return openLevelSelection("words");
   const data = { wheel: ["🎡", "Spin Wheel"], ludo: ["🎯", "Ludo"], cards: ["🃏", "Kartu Tantangan"], words: ["💬", "Tebak Kata"] }[button.dataset.game];
   $("#placeholderIcon").textContent = data[0]; $("#placeholderTitle").textContent = data[1]; showScreen("placeholderScreen");
 }));
@@ -680,12 +917,31 @@ $("#cardDeck").addEventListener("click", drawChallengeCard);
 $("#newWheelGameBtn").addEventListener("click", resetWheelGameToSetup);
 $("#spinWheelBtn").addEventListener("click", spinChallengeWheel);
 $("#challengeWheel").addEventListener("click", spinChallengeWheel);
+$("#wordList").addEventListener("change", updateSelectedWordCount);
+$("#selectAllWordsBtn").addEventListener("click", () => { $("#wordList input").forEach((input) => { input.checked = true; }); updateSelectedWordCount(); });
+$("#clearAllWordsBtn").addEventListener("click", () => { $("#wordList input").forEach((input) => { input.checked = false; }); updateSelectedWordCount(); });
+$("#addWordPlayerBtn").addEventListener("click", () => { if (playerCount < 4) { playerCount += 1; renderWordPlayerInputs(); } });
+$("#wordPlayerInputs").addEventListener("click", (event) => {
+  const index = event.target.dataset.removeWordPlayer;
+  if (index !== undefined && playerCount > 2) {
+    const remainingNames = $("#wordPlayerInputs .player-name").map((input) => input.value).filter((_, playerIndex) => playerIndex !== Number(index));
+    playerCount -= 1;
+    renderWordPlayerInputs(remainingNames);
+  }
+});
+$("#startWordGameBtn").addEventListener("click", startWordGame);
+$("#startWordRoundBtn").addEventListener("click", startWordRound);
+$("#correctWordBtn").addEventListener("click", () => answerWord(true));
+$("#skipWordBtn").addEventListener("click", () => answerWord(false));
+$("#nextWordTurnBtn").addEventListener("click", nextWordTurn);
+$("#newWordGameBtn").addEventListener("click", resetWordGameToSetup);
 $("#doneChallengeBtn").addEventListener("click", closeChallenge);
 $("#startTimerBtn").addEventListener("click", startTimer);
 $$('[data-duration]').forEach((button) => button.addEventListener("click", () => { chosenDuration = Number(button.dataset.duration); $$('[data-duration]').forEach((item) => item.classList.toggle("selected", item === button)); $("#timerValue").textContent = formatTime(chosenDuration); }));
 $("#resumeBtn").addEventListener("click", () => { try { game = JSON.parse(localStorage.getItem(STORAGE.game)); if (game) enterGame(); } catch { localStorage.removeItem(STORAGE.game); updateResumeButton(); } });
 $("#resumeCardsBtn").addEventListener("click", () => { try { cardGame = JSON.parse(localStorage.getItem(STORAGE.cardGame)); if (cardGame) enterCardGame(); } catch { localStorage.removeItem(STORAGE.cardGame); updateResumeButton(); } });
 $("#resumeWheelBtn").addEventListener("click", () => { try { wheelGame = JSON.parse(localStorage.getItem(STORAGE.wheelGame)); if (wheelGame) enterWheelGame(); } catch { localStorage.removeItem(STORAGE.wheelGame); updateResumeButton(); } });
+$("#resumeWordsBtn").addEventListener("click", () => { try { wordGame = JSON.parse(localStorage.getItem(STORAGE.wordGame)); if (wordGame) enterWordGame(); } catch { localStorage.removeItem(STORAGE.wordGame); updateResumeButton(); } });
 $("#playAgainBtn").addEventListener("click", () => { $("#winnerModal").classList.add("hidden"); game = null; openSetup(selectedLevel); });
 $("#shuffleAgainBtn").addEventListener("click", shuffleCardRoundAgain);
 $("#cardSettingsBtn").addEventListener("click", () => { $("#cardRoundModal").classList.add("hidden"); selectedGameMode = "cards"; cardGame = null; openSetup(selectedLevel); });
