@@ -656,7 +656,7 @@ function resetWheelGameToSetup() {
 
 function renderLudoPlayerInputs(values) {
   const holder = $("#ludoPlayerInputs");
-  const oldValues = values || $("#ludoPlayerInputs .player-name").map((input) => input.value);
+  const oldValues = values || $$("#ludoPlayerInputs .player-name").map((input) => input.value);
   holder.innerHTML = "";
   for (let index = 0; index < playerCount; index += 1) {
     const row = document.createElement("div");
@@ -674,7 +674,7 @@ function openLudoSetup() {
 }
 
 function startLudoGame() {
-  const names = $("#ludoPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+  const names = $$("#ludoPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
   ludoGame = {
     players: names.map((name, index) => ({ name, color: LUDO_COLORS[index], pieces: [-1, -1, -1, -1] })),
     currentIndex: Math.floor(Math.random() * names.length),
@@ -760,7 +760,7 @@ function movableLudoPieces() {
 }
 
 function placeLudoPieces() {
-  $("#ludoBoard .ludo-token").forEach((token) => token.remove());
+  $$("#ludoBoard .ludo-token").forEach((token) => token.remove());
   const movable = new Set(movableLudoPieces());
   ludoGame.players.forEach((player, playerIndex) => {
     player.pieces.forEach((progress, pieceIndex) => {
@@ -1259,7 +1259,7 @@ $("#challengeWheel").addEventListener("click", spinChallengeWheel);
 $("#ludoPlayerInputs").addEventListener("click", (event) => {
   const index = event.target.dataset.removeLudoPlayer;
   if (index !== undefined && playerCount > 2) {
-    const names = $("#ludoPlayerInputs .player-name").map((input) => input.value).filter((_, i) => i !== Number(index));
+    const names = $$("#ludoPlayerInputs .player-name").map((input) => input.value).filter((_, i) => i !== Number(index));
     playerCount -= 1; renderLudoPlayerInputs(names);
   }
 });
