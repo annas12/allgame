@@ -3,7 +3,7 @@ import { WORD_LEVELS } from "./words.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const STORAGE = { custom: "gp-custom-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedWords: "gp-word-selected-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1" };
+const STORAGE = { custom: "gp-custom-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedWords: "gp-word-selected-v1", wordDuration: "gp-word-duration-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1" };
 const COLORS = ["#ff3d81", "#6ee7ff", "#ffd166", "#9bff8a"];
 const LADDER = { 3: 22, 8: 26, 20: 41, 28: 55, 36: 57, 51: 72, 63: 81, 71: 92 };
 const SNAKE = { 17: 4, 31: 12, 47: 25, 59: 38, 69: 49, 78: 56, 88: 67, 97: 76 };
@@ -23,6 +23,7 @@ let challengeOwner = "snake";
 let busy = false;
 let timerId = null;
 let chosenDuration = 30;
+let wordDuration = 30;
 let muted = JSON.parse(localStorage.getItem(STORAGE.mute) ?? "false");
 let audioContext;
 
@@ -680,7 +681,36 @@ function updateSelectedWordCount() {
   saveSelectedWords(new Set(checked.map((input) => input.value)));
 }
 
+function getSavedWordDuration(level = selectedLevel) {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE.wordDuration)) || {}; } catch {}
+  return [30, 60, 120, 180].includes(Number(saved[level])) ? Number(saved[level]) : 30;
+}
+
+function saveWordDuration(level = selectedLevel) {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE.wordDuration)) || {}; } catch {}
+  saved[level] = wordDuration;
+  localStorage.setItem(STORAGE.wordDuration, JSON.stringify(saved));
+}
+
+function renderWordDurationPicker() {
+  $("[data-word-duration]").forEach((button) => {
+    const selected = Number(button.dataset.wordDuration) === wordDuration;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  const preview = $("#wordDurationPreview");
+  if (preview) preview.textContent = wordDuration >= 60 ? `${wordDuration / 60} mnt` : `${wordDuration}`;
+}
+
+function formatWordDuration(seconds) {
+  return seconds >= 60 ? `${seconds / 60} menit` : `${seconds} detik`;
+}
+
 function openWordSetup() {
+  wordDuration = getSavedWordDuration();
+  renderWordDurationPicker();
   $("#wordSetupEyebrow").textContent = selectedLevel === 1
     ? "TEBAK KATA · LEVEL 1 · ROMANTIS"
     : "TEBAK KATA · LEVEL 2 · HOT & VULGAR · 18+";
@@ -694,8 +724,11 @@ function startWordGame() {
   const selectedIds = new Set($$("#wordList input:checked").map((input) => input.value));
   const selectedWords = WORD_LEVELS[selectedLevel].words.filter((item) => selectedIds.has(item.id));
   if (selectedWords.length < 2) return;
+  wordDuration = getSavedWordDuration();
+  saveWordDuration();
   wordGame = {
     level: selectedLevel,
+    duration: wordDuration,
     players: names.map((name, index) => ({ name, color: COLORS[index], score: 0 })),
     currentIndex: Math.floor(Math.random() * names.length),
     sourceWords: selectedWords,
@@ -720,6 +753,8 @@ function saveWordGame() {
 function enterWordGame() {
   selectedGameMode = "words";
   selectedLevel = Number(wordGame.level);
+  wordDuration = [30, 60, 120, 180].includes(Number(wordGame.duration)) ? Number(wordGame.duration) : 30;
+  wordGame.duration = wordDuration;
   $("#wordGameLevelLabel").textContent = selectedLevel === 1
     ? "TEBAK KATA · LEVEL 1 · ROMANTIS"
     : "TEBAK KATA · LEVEL 2 · HOT & VULGAR · 18+";
@@ -751,6 +786,7 @@ function renderWordGameState() {
   $("#wordTurnLabel").textContent = `Giliran ${player.name}`;
   $("#wordRoleText").textContent = isPlaying ? `${player.name} menjelaskan · pasangan menebak` : isSummary ? "Lihat hasil ronde kalian" : `${player.name}, bersiaplah menjelaskan`;
   $("#wordTimer").textContent = formatTime(wordGame.timeLeft);
+  $("#startWordRoundBtn").textContent = `▶ MULAI RONDE ${formatWordDuration(wordGame.duration || wordDuration).toUpperCase()}`;
   $("#wordTimer").classList.toggle("urgent", isPlaying && wordGame.timeLeft <= 10);
   $("#wordCard").classList.toggle("active", isPlaying);
   $("#wordCardIcon").textContent = isPlaying ? "💡" : isSummary ? "✨" : "💬";
@@ -784,8 +820,8 @@ async function startWordRound() {
   await wait(450);
   $("#wordCountdown").classList.add("hidden");
   wordGame.phase = "playing";
-  wordGame.timeLeft = 30;
-  wordGame.endAt = Date.now() + 30000;
+  wordGame.timeLeft = wordGame.duration || wordDuration;
+  wordGame.endAt = Date.now() + (wordGame.duration || wordDuration) * 1000;
   wordGame.roundCorrect = 0;
   wordGame.roundPassed = 0;
   drawNextWord();
@@ -842,7 +878,7 @@ function nextWordTurn() {
   wordGame.currentIndex = (wordGame.currentIndex + 1) % wordGame.players.length;
   wordGame.round += 1;
   wordGame.phase = "ready";
-  wordGame.timeLeft = 30;
+  wordGame.timeLeft = wordGame.duration || wordDuration;
   wordGame.currentWord = null;
   wordGame.roundCorrect = 0;
   wordGame.roundPassed = 0;
@@ -918,6 +954,12 @@ $("#newWheelGameBtn").addEventListener("click", resetWheelGameToSetup);
 $("#spinWheelBtn").addEventListener("click", spinChallengeWheel);
 $("#challengeWheel").addEventListener("click", spinChallengeWheel);
 $("#wordList").addEventListener("change", updateSelectedWordCount);
+$("[data-word-duration]").forEach((button) => button.addEventListener("click", () => {
+  wordDuration = Number(button.dataset.wordDuration);
+  saveWordDuration();
+  renderWordDurationPicker();
+  showToast(`Durasi ronde: ${formatWordDuration(wordDuration)}`);
+}));
 $("#selectAllWordsBtn").addEventListener("click", () => { $("#wordList input").forEach((input) => { input.checked = true; }); updateSelectedWordCount(); });
 $("#clearAllWordsBtn").addEventListener("click", () => { $("#wordList input").forEach((input) => { input.checked = false; }); updateSelectedWordCount(); });
 $("#addWordPlayerBtn").addEventListener("click", () => { if (playerCount < 4) { playerCount += 1; renderWordPlayerInputs(); } });

@@ -215,8 +215,17 @@
             <div id="wordPlayerInputs" class="player-inputs"></div>
             <button id="addWordPlayerBtn" class="secondary-btn">＋ Tambah pemain</button>
             <div class="word-rules">
-              <div><b>30</b><span>detik per ronde</span></div>
+              <div><b id="wordDurationPreview">30</b><span>durasi ronde</span></div>
               <div><b>+1</b><span>setiap jawaban benar</span></div>
+            </div>
+            <div class="word-duration-picker">
+              <p>Durasi ronde</p>
+              <div class="word-duration-options">
+                <button type="button" data-word-duration="30" class="selected">30 detik</button>
+                <button type="button" data-word-duration="60">60 detik</button>
+                <button type="button" data-word-duration="120">2 menit</button>
+                <button type="button" data-word-duration="180">3 menit</button>
+              </div>
             </div>
           </div>
           <div class="setup-panel challenge-panel">
@@ -249,7 +258,7 @@
               <strong id="currentWord">Tekan tombol mulai</strong>
             </div>
             <div id="wordCountdown" class="word-countdown hidden">3</div>
-            <button id="startWordRoundBtn" class="primary-btn word-start-btn">▶ MULAI RONDE 30 DETIK</button>
+            <button id="startWordRoundBtn" class="primary-btn word-start-btn">▶ MULAI RONDE</button>
             <div id="wordAnswerControls" class="word-answer-controls hidden">
               <button id="skipWordBtn" class="secondary-btn">Lewati</button>
               <button id="correctWordBtn" class="primary-btn">BENAR +1</button>
