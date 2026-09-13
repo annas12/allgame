@@ -30,6 +30,13 @@ let audioContext;
 const screens = $$(".screen");
 const screenHistory = [];
 
+document.addEventListener("click", (event) => {
+  const levelButton = event.target.closest("[data-level]");
+  if (!levelButton) return;
+  event.preventDefault();
+  openSetup(levelButton.dataset.level);
+});
+
 function showScreen(id, remember = true) {
   if (remember && currentScreen !== id) screenHistory.push(currentScreen);
   screens.forEach((screen) => screen.classList.toggle("active", screen.id === id));
@@ -695,7 +702,7 @@ function saveWordDuration(level = selectedLevel) {
 }
 
 function renderWordDurationPicker() {
-  $("[data-word-duration]").forEach((button) => {
+  $$("[data-word-duration]").forEach((button) => {
     const selected = Number(button.dataset.wordDuration) === wordDuration;
     button.classList.toggle("selected", selected);
     button.setAttribute("aria-pressed", String(selected));
@@ -929,7 +936,7 @@ $$('[data-game]').forEach((button) => button.addEventListener("click", () => {
   const data = { wheel: ["🎡", "Spin Wheel"], ludo: ["🎯", "Ludo"], cards: ["🃏", "Kartu Tantangan"], words: ["💬", "Tebak Kata"] }[button.dataset.game];
   $("#placeholderIcon").textContent = data[0]; $("#placeholderTitle").textContent = data[1]; showScreen("placeholderScreen");
 }));
-$$('[data-level]').forEach((button) => button.addEventListener("click", () => openSetup(button.dataset.level)));
+
 $("#addPlayerBtn").addEventListener("click", () => { if (playerCount < 4) { playerCount += 1; renderPlayerInputs(); } });
 $("#playerInputs").addEventListener("click", (event) => {
   const index = event.target.dataset.removePlayer;
@@ -954,14 +961,14 @@ $("#newWheelGameBtn").addEventListener("click", resetWheelGameToSetup);
 $("#spinWheelBtn").addEventListener("click", spinChallengeWheel);
 $("#challengeWheel").addEventListener("click", spinChallengeWheel);
 $("#wordList").addEventListener("change", updateSelectedWordCount);
-$("[data-word-duration]").forEach((button) => button.addEventListener("click", () => {
+$$("[data-word-duration]").forEach((button) => button.addEventListener("click", () => {
   wordDuration = Number(button.dataset.wordDuration);
   saveWordDuration();
   renderWordDurationPicker();
   showToast(`Durasi ronde: ${formatWordDuration(wordDuration)}`);
 }));
-$("#selectAllWordsBtn").addEventListener("click", () => { $("#wordList input").forEach((input) => { input.checked = true; }); updateSelectedWordCount(); });
-$("#clearAllWordsBtn").addEventListener("click", () => { $("#wordList input").forEach((input) => { input.checked = false; }); updateSelectedWordCount(); });
+$("#selectAllWordsBtn").addEventListener("click", () => { $$("#wordList input").forEach((input) => { input.checked = true; }); updateSelectedWordCount(); });
+$("#clearAllWordsBtn").addEventListener("click", () => { $$("#wordList input").forEach((input) => { input.checked = false; }); updateSelectedWordCount(); });
 $("#addWordPlayerBtn").addEventListener("click", () => { if (playerCount < 4) { playerCount += 1; renderWordPlayerInputs(); } });
 $("#wordPlayerInputs").addEventListener("click", (event) => {
   const index = event.target.dataset.removeWordPlayer;
