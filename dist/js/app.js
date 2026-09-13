@@ -3,8 +3,19 @@ import { WORD_LEVELS } from "./words.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const STORAGE = { custom: "gp-custom-v1", customWords: "gp-custom-words-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedWords: "gp-word-selected-v1", wordDuration: "gp-word-duration-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1" };
+const STORAGE = { custom: "gp-custom-v1", customWords: "gp-custom-words-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedWords: "gp-word-selected-v1", wordDuration: "gp-word-duration-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1", ludoGame: "gp-ludo-game-v1" };
 const COLORS = ["#ff3d81", "#6ee7ff", "#ffd166", "#9bff8a"];
+const LUDO_COLORS = ["#ef3f5d", "#35c87a", "#ffd166", "#4f9cff"];
+const LUDO_COLOR_NAMES = ["Merah", "Hijau", "Kuning", "Biru"];
+const LUDO_STARTS = [0, 13, 26, 39];
+const LUDO_SAFE = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
+const LUDO_PATH = [[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],[8,14],[8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0]];
+const LUDO_LANES = [
+  [[7,1],[7,2],[7,3],[7,4],[7,5],[7,6]],
+  [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]],
+  [[7,13],[7,12],[7,11],[7,10],[7,9],[7,8]],
+  [[13,7],[12,7],[11,7],[10,7],[9,7],[8,7]]
+];
 const LADDER = { 3: 22, 8: 26, 20: 41, 28: 55, 36: 57, 51: 72, 63: 81, 71: 92 };
 const SNAKE = { 17: 4, 31: 12, 47: 25, 59: 38, 69: 49, 78: 56, 88: 67, 97: 76 };
 const SPECIAL_CELLS = new Set([...Object.keys(LADDER), ...Object.values(LADDER), ...Object.keys(SNAKE), ...Object.values(SNAKE)].map(Number));
@@ -17,6 +28,7 @@ let game = null;
 let cardGame = null;
 let wheelGame = null;
 let wordGame = null;
+let ludoGame = null;
 let wheelRotation = 0;
 let wordTimerId = null;
 let challengeOwner = "snake";
@@ -41,7 +53,7 @@ function showScreen(id, remember = true) {
   if (remember && currentScreen !== id) screenHistory.push(currentScreen);
   screens.forEach((screen) => screen.classList.toggle("active", screen.id === id));
   currentScreen = id;
-  $("#backBtn").classList.toggle("hidden", id === "homeScreen" || id === "gameScreen" || id === "cardGameScreen" || id === "wheelGameScreen" || id === "wordGameScreen");
+  $("#backBtn").classList.toggle("hidden", id === "homeScreen" || id === "gameScreen" || id === "cardGameScreen" || id === "wheelGameScreen" || id === "wordGameScreen" || id === "ludoGameScreen");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -222,6 +234,7 @@ function updateResumeButton() {
   $("#resumeCardsBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.cardGame));
   $("#resumeWheelBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.wheelGame));
   $("#resumeWordsBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.wordGame));
+  $("#resumeLudoBtn").classList.toggle("hidden", !localStorage.getItem(STORAGE.ludoGame));
 }
 
 function enterGame() {
@@ -640,6 +653,248 @@ function resetWheelGameToSetup() {
 }
 
 
+
+function renderLudoPlayerInputs(values) {
+  const holder = $("#ludoPlayerInputs");
+  const oldValues = values || $("#ludoPlayerInputs .player-name").map((input) => input.value);
+  holder.innerHTML = "";
+  for (let index = 0; index < playerCount; index += 1) {
+    const row = document.createElement("div");
+    row.className = "player-row";
+    row.innerHTML = `<span class="player-color" style="--player-color:${LUDO_COLORS[index]}">${index + 1}</span><input class="player-name" maxlength="18" value="${escapeHtml(oldValues[index] || `Pemain ${index + 1}`)}" aria-label="Nama pemain ${index + 1}">${playerCount > 2 ? `<button class="remove-player" data-remove-ludo-player="${index}" aria-label="Hapus pemain">×</button>` : ""}`;
+    holder.appendChild(row);
+  }
+  $("#addLudoPlayerBtn").disabled = playerCount >= 4;
+}
+
+function openLudoSetup() {
+  selectedGameMode = "ludo";
+  renderLudoPlayerInputs();
+  showScreen("ludoSetupScreen");
+}
+
+function startLudoGame() {
+  const names = $("#ludoPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+  ludoGame = {
+    players: names.map((name, index) => ({ name, color: LUDO_COLORS[index], pieces: [-1, -1, -1, -1] })),
+    currentIndex: Math.floor(Math.random() * names.length),
+    phase: "roll",
+    dice: 1,
+    turn: 1,
+    message: "Tekan dadu untuk mulai"
+  };
+  saveLudoGame();
+  enterLudoGame();
+}
+
+function saveLudoGame() {
+  if (ludoGame) localStorage.setItem(STORAGE.ludoGame, JSON.stringify(ludoGame));
+  updateResumeButton();
+}
+
+function enterLudoGame() {
+  selectedGameMode = "ludo";
+  busy = false;
+  renderLudoBoard();
+  renderLudoState();
+  showScreen("ludoGameScreen", false);
+}
+
+function ludoCoordKey(coord) { return `${coord[0]}-${coord[1]}`; }
+
+function renderLudoBoard() {
+  const board = $("#ludoBoard");
+  board.innerHTML = "";
+  const pathMap = new Map(LUDO_PATH.map((coord, index) => [ludoCoordKey(coord), index]));
+  const laneMap = new Map();
+  LUDO_LANES.forEach((lane, playerIndex) => lane.forEach((coord) => laneMap.set(ludoCoordKey(coord), playerIndex)));
+  for (let row = 0; row < 15; row += 1) {
+    for (let col = 0; col < 15; col += 1) {
+      const cell = document.createElement("div");
+      const key = `${row}-${col}`;
+      cell.className = "ludo-cell";
+      cell.dataset.coord = key;
+      if (pathMap.has(key)) {
+        const pathIndex = pathMap.get(key);
+        cell.classList.add("ludo-path");
+        if (LUDO_SAFE.has(pathIndex)) { cell.classList.add("ludo-safe"); cell.innerHTML = "<span>★</span>"; }
+        const startPlayer = LUDO_STARTS.indexOf(pathIndex);
+        if (startPlayer >= 0) cell.style.setProperty("--cell-color", LUDO_COLORS[startPlayer]);
+      } else if (laneMap.has(key)) {
+        const owner = laneMap.get(key);
+        cell.classList.add("ludo-lane");
+        cell.style.setProperty("--cell-color", LUDO_COLORS[owner]);
+      }
+      if (row === 7 && col === 7) { cell.classList.add("ludo-center"); cell.innerHTML = "<span>🏆</span>"; }
+      board.appendChild(cell);
+    }
+  }
+  const positions = ["tl", "tr", "br", "bl"];
+  ludoGame.players.forEach((player, index) => {
+    const base = document.createElement("div");
+    base.className = `ludo-base ludo-base-${positions[index]}`;
+    base.dataset.player = index;
+    base.style.setProperty("--base-color", player.color);
+    base.innerHTML = `<strong>${escapeHtml(player.name)}</strong><div class="ludo-base-spots"></div>`;
+    board.appendChild(base);
+  });
+  placeLudoPieces();
+}
+
+function globalLudoPosition(playerIndex, progress) {
+  return (LUDO_STARTS[playerIndex] + progress) % 52;
+}
+
+function pieceCoord(playerIndex, progress) {
+  if (progress >= 0 && progress <= 51) return LUDO_PATH[globalLudoPosition(playerIndex, progress)];
+  if (progress >= 52 && progress <= 57) return LUDO_LANES[playerIndex][progress - 52];
+  return [7, 7];
+}
+
+function movableLudoPieces() {
+  if (!ludoGame || ludoGame.phase !== "select") return [];
+  const player = ludoGame.players[ludoGame.currentIndex];
+  return player.pieces.map((progress, index) => ({ progress, index })).filter(({ progress }) =>
+    (progress === -1 && ludoGame.dice === 6) || (progress >= 0 && progress < 58 && progress + ludoGame.dice <= 58)
+  ).map((item) => item.index);
+}
+
+function placeLudoPieces() {
+  $("#ludoBoard .ludo-token").forEach((token) => token.remove());
+  const movable = new Set(movableLudoPieces());
+  ludoGame.players.forEach((player, playerIndex) => {
+    player.pieces.forEach((progress, pieceIndex) => {
+      const token = document.createElement("button");
+      token.className = `ludo-token ${movable.has(pieceIndex) && playerIndex === ludoGame.currentIndex ? "movable" : ""}`;
+      token.style.setProperty("--token", player.color);
+      token.dataset.player = playerIndex;
+      token.dataset.piece = pieceIndex;
+      token.textContent = pieceIndex + 1;
+      token.disabled = !(movable.has(pieceIndex) && playerIndex === ludoGame.currentIndex);
+      if (progress === -1) {
+        boardBase(playerIndex).querySelector(".ludo-base-spots").appendChild(token);
+      } else {
+        const coord = pieceCoord(playerIndex, progress);
+        const cell = $(`#ludoBoard [data-coord="${ludoCoordKey(coord)}"]`);
+        if (cell) cell.appendChild(token);
+      }
+    });
+  });
+}
+
+function boardBase(playerIndex) { return $(`#ludoBoard .ludo-base[data-player="${playerIndex}"]`); }
+
+function renderLudoState() {
+  const current = ludoGame.players[ludoGame.currentIndex];
+  $("#ludoTurnLabel").textContent = `Giliran ${current.name}`;
+  $("#ludoDice").textContent = ["⚀","⚁","⚂","⚃","⚄","⚅"][ludoGame.dice - 1];
+  $("#ludoMessage").textContent = ludoGame.message;
+  $("#rollLudoBtn").disabled = busy || ludoGame.phase !== "roll";
+  $("#ludoDice").disabled = busy || ludoGame.phase !== "roll";
+  $("#ludoPlayerStatus").innerHTML = ludoGame.players.map((player, index) => {
+    const finished = player.pieces.filter((piece) => piece >= 58).length;
+    return `<div class="status-card ${index === ludoGame.currentIndex ? "current" : ""}" style="--token:${player.color}">
+      <span class="status-token">${index + 1}</span><span><strong>${escapeHtml(player.name)}</strong><small>${finished}/4 pion finis</small></span>
+      ${index === ludoGame.currentIndex ? "<b>GILIRAN</b>" : ""}</div>`;
+  }).join("");
+  placeLudoPieces();
+}
+
+async function rollLudoDice() {
+  if (!ludoGame || ludoGame.phase !== "roll" || busy) return;
+  busy = true;
+  $("#ludoDice").classList.add("rolling");
+  $("#ludoMessage").textContent = "Dadu berputar…";
+  [260,340,430,520,610].forEach((frequency, index) => setTimeout(() => beep(frequency, .04, "square", .025), index * 100));
+  await wait(700);
+  ludoGame.dice = Math.floor(Math.random() * 6) + 1;
+  $("#ludoDice").classList.remove("rolling");
+  ludoGame.phase = "select";
+  busy = false;
+  const moves = movableLudoPieces();
+  if (!moves.length) {
+    ludoGame.message = `Dapat ${ludoGame.dice}. Tidak ada pion yang bisa bergerak.`;
+    renderLudoState();
+    saveLudoGame();
+    await wait(1100);
+    finishLudoTurn();
+    return;
+  }
+  ludoGame.message = `Dapat ${ludoGame.dice}. Pilih pion yang ingin digerakkan.`;
+  renderLudoState();
+  saveLudoGame();
+  beep(700, .1);
+}
+
+async function moveLudoPiece(pieceIndex) {
+  if (!ludoGame || ludoGame.phase !== "select" || busy || !movableLudoPieces().includes(pieceIndex)) return;
+  busy = true;
+  const playerIndex = ludoGame.currentIndex;
+  const player = ludoGame.players[playerIndex];
+  let progress = player.pieces[pieceIndex];
+  if (progress === -1) {
+    player.pieces[pieceIndex] = 0;
+    ludoGame.message = `${player.name} mengeluarkan pion ${pieceIndex + 1}.`;
+    renderLudoState(); beep(620, .12); await wait(450);
+  } else {
+    for (let step = 0; step < ludoGame.dice; step += 1) {
+      player.pieces[pieceIndex] += 1;
+      renderLudoState();
+      beep(350 + step * 22, .035, "square", .018);
+      await wait(150);
+    }
+  }
+  const finalProgress = player.pieces[pieceIndex];
+  let captured = 0;
+  if (finalProgress >= 0 && finalProgress <= 51) {
+    const global = globalLudoPosition(playerIndex, finalProgress);
+    if (!LUDO_SAFE.has(global)) {
+      ludoGame.players.forEach((opponent, opponentIndex) => {
+        if (opponentIndex === playerIndex) return;
+        opponent.pieces = opponent.pieces.map((otherProgress) => {
+          if (otherProgress >= 0 && otherProgress <= 51 && globalLudoPosition(opponentIndex, otherProgress) === global) {
+            captured += 1; return -1;
+          }
+          return otherProgress;
+        });
+      });
+    }
+  }
+  if (captured) { ludoGame.message = `${player.name} memakan ${captured} pion lawan!`; beep(900,.12); await wait(650); }
+  if (finalProgress >= 58) { ludoGame.message = `Pion ${pieceIndex + 1} berhasil finis!`; victorySound(); await wait(650); }
+  saveLudoGame();
+  renderLudoState();
+  if (player.pieces.every((piece) => piece >= 58)) return showLudoWinner(player);
+  finishLudoTurn();
+}
+
+function finishLudoTurn() {
+  busy = false;
+  ludoGame.currentIndex = (ludoGame.currentIndex + 1) % ludoGame.players.length;
+  ludoGame.phase = "roll";
+  ludoGame.turn += 1;
+  ludoGame.message = `Giliran ${ludoGame.players[ludoGame.currentIndex].name}. Tekan dadu.`;
+  saveLudoGame();
+  renderLudoState();
+}
+
+function showLudoWinner(player) {
+  busy = false;
+  localStorage.removeItem(STORAGE.ludoGame);
+  updateResumeButton();
+  $("#ludoWinnerTitle").textContent = `${player.name} Menang!`;
+  $("#ludoWinnerModal").classList.remove("hidden");
+  victorySound();
+}
+
+function resetLudoToSetup() {
+  if (!confirm("Mulai ulang Ludo? Semua posisi pion akan dihapus.")) return;
+  localStorage.removeItem(STORAGE.ludoGame);
+  ludoGame = null;
+  busy = false;
+  openLudoSetup();
+}
+
 function getCustomWords() {
   try { return JSON.parse(localStorage.getItem(STORAGE.customWords)) || { 1: [], 2: [] }; }
   catch { return { 1: [], 2: [] }; }
@@ -972,6 +1227,7 @@ $$('[data-game]').forEach((button) => button.addEventListener("click", () => {
   if (button.dataset.game === "snake") return openLevelSelection("snake");
   if (button.dataset.game === "cards") return openLevelSelection("cards");
   if (button.dataset.game === "wheel") return openLevelSelection("wheel");
+  if (button.dataset.game === "ludo") return openLudoSetup();
   if (button.dataset.game === "words") return openLevelSelection("words");
   const data = { wheel: ["🎡", "Spin Wheel"], ludo: ["🎯", "Ludo"], cards: ["🃏", "Kartu Tantangan"], words: ["💬", "Tebak Kata"] }[button.dataset.game];
   $("#placeholderIcon").textContent = data[0]; $("#placeholderTitle").textContent = data[1]; showScreen("placeholderScreen");
@@ -1000,6 +1256,23 @@ $("#cardDeck").addEventListener("click", drawChallengeCard);
 $("#newWheelGameBtn").addEventListener("click", resetWheelGameToSetup);
 $("#spinWheelBtn").addEventListener("click", spinChallengeWheel);
 $("#challengeWheel").addEventListener("click", spinChallengeWheel);
+$("#ludoPlayerInputs").addEventListener("click", (event) => {
+  const index = event.target.dataset.removeLudoPlayer;
+  if (index !== undefined && playerCount > 2) {
+    const names = $("#ludoPlayerInputs .player-name").map((input) => input.value).filter((_, i) => i !== Number(index));
+    playerCount -= 1; renderLudoPlayerInputs(names);
+  }
+});
+$("#addLudoPlayerBtn").addEventListener("click", () => { if (playerCount < 4) { playerCount += 1; renderLudoPlayerInputs(); } });
+$("#startLudoGameBtn").addEventListener("click", startLudoGame);
+$("#rollLudoBtn").addEventListener("click", rollLudoDice);
+$("#ludoDice").addEventListener("click", rollLudoDice);
+$("#ludoBoard").addEventListener("click", (event) => {
+  const token = event.target.closest(".ludo-token");
+  if (token && Number(token.dataset.player) === ludoGame?.currentIndex) moveLudoPiece(Number(token.dataset.piece));
+});
+$("#newLudoGameBtn").addEventListener("click", resetLudoToSetup);
+$("#playLudoAgainBtn").addEventListener("click", () => { $("#ludoWinnerModal").classList.add("hidden"); ludoGame = null; openLudoSetup(); });
 $("#wordList").addEventListener("change", updateSelectedWordCount);
 $("#wordList").addEventListener("click", (event) => {
   const id = event.target.dataset.deleteCustomWord;
@@ -1036,10 +1309,11 @@ $("#resumeBtn").addEventListener("click", () => { try { game = JSON.parse(localS
 $("#resumeCardsBtn").addEventListener("click", () => { try { cardGame = JSON.parse(localStorage.getItem(STORAGE.cardGame)); if (cardGame) enterCardGame(); } catch { localStorage.removeItem(STORAGE.cardGame); updateResumeButton(); } });
 $("#resumeWheelBtn").addEventListener("click", () => { try { wheelGame = JSON.parse(localStorage.getItem(STORAGE.wheelGame)); if (wheelGame) enterWheelGame(); } catch { localStorage.removeItem(STORAGE.wheelGame); updateResumeButton(); } });
 $("#resumeWordsBtn").addEventListener("click", () => { try { wordGame = JSON.parse(localStorage.getItem(STORAGE.wordGame)); if (wordGame) enterWordGame(); } catch { localStorage.removeItem(STORAGE.wordGame); updateResumeButton(); } });
+$("#resumeLudoBtn").addEventListener("click", () => { try { ludoGame = JSON.parse(localStorage.getItem(STORAGE.ludoGame)); if (ludoGame) enterLudoGame(); } catch { localStorage.removeItem(STORAGE.ludoGame); updateResumeButton(); } });
 $("#playAgainBtn").addEventListener("click", () => { $("#winnerModal").classList.add("hidden"); game = null; openSetup(selectedLevel); });
 $("#shuffleAgainBtn").addEventListener("click", shuffleCardRoundAgain);
 $("#cardSettingsBtn").addEventListener("click", () => { $("#cardRoundModal").classList.add("hidden"); selectedGameMode = "cards"; cardGame = null; openSetup(selectedLevel); });
-$$('[data-back-home]').forEach((button) => button.addEventListener("click", () => { $("#winnerModal").classList.add("hidden"); $("#cardRoundModal").classList.add("hidden"); goHome(); }));
+$$('[data-back-home]').forEach((button) => button.addEventListener("click", () => { $("#winnerModal").classList.add("hidden"); $("#cardRoundModal").classList.add("hidden"); $("#ludoWinnerModal").classList.add("hidden"); goHome(); }));
 
 $("#muteBtn").textContent = muted ? "🔇" : "🔊";
 renderPlayerInputs();
