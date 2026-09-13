@@ -648,7 +648,7 @@ function saveSelectedWords(ids, level = selectedLevel) {
 
 function renderWordPlayerInputs(values) {
   const holder = $("#wordPlayerInputs");
-  const oldValues = values || $("#wordPlayerInputs .player-name").map((input) => input.value);
+  const oldValues = values || $$("#wordPlayerInputs .player-name").map((input) => input.value);
   holder.innerHTML = "";
   for (let index = 0; index < playerCount; index += 1) {
     const row = document.createElement("div");
@@ -671,7 +671,7 @@ function renderWordList() {
 }
 
 function updateSelectedWordCount() {
-  const checked = $("#wordList input:checked");
+  const checked = $$("#wordList input:checked");
   $("#selectedWordCount").textContent = checked.length;
   $("#startWordGameBtn").disabled = checked.length < 2;
   $("#wordSetupHint").textContent = checked.length < 2
@@ -690,8 +690,8 @@ function openWordSetup() {
 }
 
 function startWordGame() {
-  const names = $("#wordPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
-  const selectedIds = new Set($("#wordList input:checked").map((input) => input.value));
+  const names = $$("#wordPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+  const selectedIds = new Set($$("#wordList input:checked").map((input) => input.value));
   const selectedWords = WORD_LEVELS[selectedLevel].words.filter((item) => selectedIds.has(item.id));
   if (selectedWords.length < 2) return;
   wordGame = {
@@ -924,7 +924,7 @@ $("#addWordPlayerBtn").addEventListener("click", () => { if (playerCount < 4) { 
 $("#wordPlayerInputs").addEventListener("click", (event) => {
   const index = event.target.dataset.removeWordPlayer;
   if (index !== undefined && playerCount > 2) {
-    const remainingNames = $("#wordPlayerInputs .player-name").map((input) => input.value).filter((_, playerIndex) => playerIndex !== Number(index));
+    const remainingNames = $$("#wordPlayerInputs .player-name").map((input) => input.value).filter((_, playerIndex) => playerIndex !== Number(index));
     playerCount -= 1;
     renderWordPlayerInputs(remainingNames);
   }
