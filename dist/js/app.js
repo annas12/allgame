@@ -3,7 +3,7 @@ import { WORD_LEVELS } from "./words.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const STORAGE = { custom: "gp-custom-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedWords: "gp-word-selected-v1", wordDuration: "gp-word-duration-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1" };
+const STORAGE = { custom: "gp-custom-v1", customWords: "gp-custom-words-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedWords: "gp-word-selected-v1", wordDuration: "gp-word-duration-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1" };
 const COLORS = ["#ff3d81", "#6ee7ff", "#ffd166", "#9bff8a"];
 const LADDER = { 3: 22, 8: 26, 20: 41, 28: 55, 36: 57, 51: 72, 63: 81, 71: 92 };
 const SNAKE = { 17: 4, 31: 12, 47: 25, 59: 38, 69: 49, 78: 56, 88: 67, 97: 76 };
@@ -640,10 +640,47 @@ function resetWheelGameToSetup() {
 }
 
 
+function getCustomWords() {
+  try { return JSON.parse(localStorage.getItem(STORAGE.customWords)) || { 1: [], 2: [] }; }
+  catch { return { 1: [], 2: [] }; }
+}
+
+function getWordChallenges(level = selectedLevel) {
+  return [...WORD_LEVELS[level].words, ...(getCustomWords()[level] || [])];
+}
+
+function addCustomWord(event) {
+  event.preventDefault();
+  const input = $("#customWordInput");
+  const text = input.value.trim();
+  if (!text) return;
+  const custom = getCustomWords();
+  custom[selectedLevel] ||= [];
+  const item = { id: `custom-word-${selectedLevel}-${Date.now()}`, text, custom: true };
+  custom[selectedLevel].push(item);
+  localStorage.setItem(STORAGE.customWords, JSON.stringify(custom));
+  const selected = getSavedSelectedWords();
+  selected.add(item.id);
+  saveSelectedWords(selected);
+  event.target.reset();
+  renderWordList();
+  showToast("Kata custom ditambahkan");
+}
+
+function deleteCustomWord(id) {
+  const custom = getCustomWords();
+  custom[selectedLevel] = (custom[selectedLevel] || []).filter((item) => item.id !== id);
+  localStorage.setItem(STORAGE.customWords, JSON.stringify(custom));
+  const selected = getSavedSelectedWords();
+  selected.delete(id);
+  saveSelectedWords(selected);
+  renderWordList();
+}
+
 function getSavedSelectedWords(level = selectedLevel) {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(STORAGE.selectedWords)) || {}; } catch {}
-  const allIds = WORD_LEVELS[level].words.map((item) => item.id);
+  const allIds = getWordChallenges(level).map((item) => item.id);
   return new Set(Array.isArray(saved[level]) ? saved[level].filter((id) => allIds.includes(id)) : allIds);
 }
 
@@ -669,11 +706,14 @@ function renderWordPlayerInputs(values) {
 
 function renderWordList() {
   const selected = getSavedSelectedWords();
-  $("#wordList").innerHTML = WORD_LEVELS[selectedLevel].words.map((word, index) => `
+  const words = getWordChallenges();
+  const customIds = new Set((getCustomWords()[selectedLevel] || []).map((item) => item.id));
+  $("#wordList").innerHTML = words.map((word, index) => `
     <label class="challenge-option word-option">
       <input type="checkbox" value="${word.id}" ${selected.has(word.id) ? "checked" : ""}>
       <span class="custom-checkbox">✓</span><span class="challenge-index">${String(index + 1).padStart(2, "0")}</span>
-      <span class="challenge-option-copy"><span>${escapeHtml(word.text)}</span><small>💬 Kata tebakan</small></span>
+      <span class="challenge-option-copy"><span>${escapeHtml(word.text)}</span><small>${customIds.has(word.id) ? "✍ Kata buatan sendiri" : "💬 Kata bawaan"}</small></span>
+      ${customIds.has(word.id) ? `<button type="button" class="delete-custom" data-delete-custom-word="${word.id}" aria-label="Hapus kata custom">×</button>` : ""}
     </label>`).join("");
   updateSelectedWordCount();
 }
@@ -729,7 +769,7 @@ function openWordSetup() {
 function startWordGame() {
   const names = $$("#wordPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
   const selectedIds = new Set($$("#wordList input:checked").map((input) => input.value));
-  const selectedWords = WORD_LEVELS[selectedLevel].words.filter((item) => selectedIds.has(item.id));
+  const selectedWords = getWordChallenges().filter((item) => selectedIds.has(item.id));
   if (selectedWords.length < 2) return;
   wordDuration = getSavedWordDuration();
   saveWordDuration();
@@ -961,6 +1001,11 @@ $("#newWheelGameBtn").addEventListener("click", resetWheelGameToSetup);
 $("#spinWheelBtn").addEventListener("click", spinChallengeWheel);
 $("#challengeWheel").addEventListener("click", spinChallengeWheel);
 $("#wordList").addEventListener("change", updateSelectedWordCount);
+$("#wordList").addEventListener("click", (event) => {
+  const id = event.target.dataset.deleteCustomWord;
+  if (id) { event.preventDefault(); deleteCustomWord(id); }
+});
+$("#customWordForm").addEventListener("submit", addCustomWord);
 $$("[data-word-duration]").forEach((button) => button.addEventListener("click", () => {
   wordDuration = Number(button.dataset.wordDuration);
   saveWordDuration();

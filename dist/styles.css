@@ -268,7 +268,9 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 
 
 .resume-words .resume-icon { color: #6ee7ff; }
- .word-duration-picker { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+ .word-custom-form { margin-top: 12px; }
+.word-custom-form .small-primary { white-space: nowrap; }
+.word-duration-picker { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .word-duration-picker > p { margin: 0 0 9px; color: var(--muted); font-size: .8rem; font-weight: 800; }
 .word-duration-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
 .word-duration-options button { min-height: 40px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: rgba(255,255,255,.05); cursor: pointer; font-size: .78rem; }
