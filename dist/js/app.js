@@ -827,6 +827,7 @@ async function rollLudoDice() {
   $("#ludoMessage").textContent = "Dadu berputar…";
   [260,340,430,520,610].forEach((frequency, index) => setTimeout(() => beep(frequency, .04, "square", .025), index * 100));
   await wait(700);
+  if (!ludoGame) return;
   ludoGame.dice = Math.floor(Math.random() * 6) + 1;
   $("#ludoDice").classList.remove("rolling");
   ludoGame.phase = "select";
