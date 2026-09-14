@@ -693,8 +693,28 @@ function saveLudoGame() {
 }
 
 function enterLudoGame() {
+  if (!ludoGame || !Array.isArray(ludoGame.players) || ludoGame.players.length < 2) {
+    localStorage.removeItem(STORAGE.ludoGame);
+    ludoGame = null;
+    updateResumeButton();
+    openLudoSetup();
+    return;
+  }
+  ludoGame.players = ludoGame.players.slice(0, 4).map((player, index) => ({
+    name: String(player.name || `Pemain ${index + 1}`),
+    color: LUDO_COLORS[index],
+    pieces: Array.isArray(player.pieces) && player.pieces.length === 4
+      ? player.pieces.map((piece) => Number.isFinite(Number(piece)) ? Math.max(-1, Math.min(58, Number(piece))) : -1)
+      : [-1, -1, -1, -1]
+  }));
+  ludoGame.currentIndex = Math.min(Math.max(Number(ludoGame.currentIndex) || 0, 0), ludoGame.players.length - 1);
+  ludoGame.phase = ludoGame.phase === "select" ? "select" : "roll";
+  ludoGame.dice = Math.min(6, Math.max(1, Number(ludoGame.dice) || 1));
+  ludoGame.turn = Math.max(1, Number(ludoGame.turn) || 1);
+  ludoGame.message = String(ludoGame.message || `Giliran ${ludoGame.players[ludoGame.currentIndex].name}. Tekan dadu.`);
   selectedGameMode = "ludo";
   busy = false;
+  saveLudoGame();
   renderLudoBoard();
   renderLudoState();
   showScreen("ludoGameScreen", false);
@@ -810,16 +830,17 @@ async function rollLudoDice() {
   ludoGame.dice = Math.floor(Math.random() * 6) + 1;
   $("#ludoDice").classList.remove("rolling");
   ludoGame.phase = "select";
-  busy = false;
   const moves = movableLudoPieces();
   if (!moves.length) {
     ludoGame.message = `Dapat ${ludoGame.dice}. Tidak ada pion yang bisa bergerak.`;
     renderLudoState();
     saveLudoGame();
     await wait(1100);
+    if (!ludoGame) return;
     finishLudoTurn();
     return;
   }
+  busy = false;
   ludoGame.message = `Dapat ${ludoGame.dice}. Pilih pion yang ingin digerakkan.`;
   renderLudoState();
   saveLudoGame();
@@ -836,14 +857,17 @@ async function moveLudoPiece(pieceIndex) {
     player.pieces[pieceIndex] = 0;
     ludoGame.message = `${player.name} mengeluarkan pion ${pieceIndex + 1}.`;
     renderLudoState(); beep(620, .12); await wait(450);
+    if (!ludoGame) return;
   } else {
     for (let step = 0; step < ludoGame.dice; step += 1) {
       player.pieces[pieceIndex] += 1;
       renderLudoState();
       beep(350 + step * 22, .035, "square", .018);
       await wait(150);
+      if (!ludoGame) return;
     }
   }
+  if (!ludoGame) return;
   const finalProgress = player.pieces[pieceIndex];
   let captured = 0;
   if (finalProgress >= 0 && finalProgress <= 51) {
@@ -869,6 +893,7 @@ async function moveLudoPiece(pieceIndex) {
 }
 
 function finishLudoTurn() {
+  if (!ludoGame || !ludoGame.players?.length) return;
   busy = false;
   ludoGame.currentIndex = (ludoGame.currentIndex + 1) % ludoGame.players.length;
   ludoGame.phase = "roll";
