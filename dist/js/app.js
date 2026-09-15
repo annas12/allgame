@@ -775,7 +775,7 @@ function movableLudoPieces() {
   if (!ludoGame || ludoGame.phase !== "select") return [];
   const player = ludoGame.players[ludoGame.currentIndex];
   return player.pieces.map((progress, index) => ({ progress, index })).filter(({ progress }) =>
-    (progress === -1 && ludoGame.dice === 6) || (progress >= 0 && progress < 58 && progress + ludoGame.dice <= 58)
+    (progress === -1 && ludoGame.dice >= 1) || (progress >= 0 && progress < 58 && progress + ludoGame.dice <= 58)
   ).map((item) => item.index);
 }
 
@@ -854,19 +854,20 @@ async function moveLudoPiece(pieceIndex) {
   const playerIndex = ludoGame.currentIndex;
   const player = ludoGame.players[playerIndex];
   let progress = player.pieces[pieceIndex];
+  let stepsRemaining = ludoGame.dice;
   if (progress === -1) {
     player.pieces[pieceIndex] = 0;
-    ludoGame.message = `${player.name} mengeluarkan pion ${pieceIndex + 1}.`;
-    renderLudoState(); beep(620, .12); await wait(450);
+    stepsRemaining -= 1;
+    ludoGame.message = `${player.name} mengeluarkan pion ${pieceIndex + 1} dan bergerak ${ludoGame.dice} langkah.`;
+    renderLudoState(); beep(620, .12); await wait(250);
     if (!ludoGame) return;
-  } else {
-    for (let step = 0; step < ludoGame.dice; step += 1) {
-      player.pieces[pieceIndex] += 1;
-      renderLudoState();
-      beep(350 + step * 22, .035, "square", .018);
-      await wait(150);
-      if (!ludoGame) return;
-    }
+  }
+  for (let step = 0; step < stepsRemaining; step += 1) {
+    player.pieces[pieceIndex] += 1;
+    renderLudoState();
+    beep(350 + step * 22, .035, "square", .018);
+    await wait(150);
+    if (!ludoGame) return;
   }
   if (!ludoGame) return;
   const finalProgress = player.pieces[pieceIndex];
