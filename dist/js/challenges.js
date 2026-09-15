@@ -32,6 +32,21 @@ export const LEVELS = {
       { id: "l1-28", text: "Pilih satu foto lama kalian dan ceritakan kenapa foto itu berharga.", timed: false },
       { id: "l1-29", text: "Berikan ciuman di pipi kanan dan kiri pasangan.", timed: false },
       { id: "l1-30", text: "Ucapkan satu harapan tulus untuk hubungan kalian.", timed: false }
+      { id: "l1-31", text: "Peluk pasangan dari belakang sambil mengucapkan satu kalimat manis.", timed: false },
+      { id: "l1-32", text: "Tatap pasangan lalu sebutkan alasan kamu memilihnya.", timed: false },
+      { id: "l1-33", text: "Buat pasangan tertawa dengan cerita atau tingkah lucu selama 30 detik.", timed: true },
+      { id: "l1-34", text: "Berikan pijatan lembut pada tangan pasangan selama 1 menit.", timed: true },
+      { id: "l1-35", text: "Sebutkan tiga momen bersama yang ingin kamu ulangi.", timed: false },
+      { id: "l1-36", text: "Cium tangan pasangan dan ucapkan satu doa untuk hubungan kalian.", timed: false },
+      { id: "l1-37", text: "Tirukan cara pasangan memanggil namamu hingga ia tersenyum.", timed: false },
+      { id: "l1-38", text: "Nyanyikan lagu yang mengingatkanmu pada awal hubungan kalian.", timed: false },
+      { id: "l1-39", text: "Peluk pasangan sambil menarik napas dan rileks bersama selama 30 detik.", timed: true },
+      { id: "l1-40", text: "Sampaikan satu hal yang ingin kamu perbaiki bersama pasangan.", timed: false },
+      { id: "l1-41", text: "Buat rencana kencan impian dengan anggaran sederhana.", timed: false },
+      { id: "l1-42", text: "Berikan tiga pujian berbeda tanpa mengulang kata yang sama.", timed: false },
+      { id: "l1-43", text: "Pegang pipi pasangan dan katakan, “Aku beruntung memilikimu.”", timed: false },
+      { id: "l1-44", text: "Lakukan tos unik buatan kalian sendiri sebanyak tiga kali.", timed: false },
+      { id: "l1-45", text: "Duduk berhadapan dan tersenyum bersama tanpa bicara selama 30 detik.", timed: true }
     ]
   },
   2: {
@@ -67,6 +82,21 @@ export const LEVELS = {
       { id: "l2-28", text: "Cium bibir pasangan sambil tangannya memegang bagian tubuh pilihanmu selama 30 detik.", timed: true },
       { id: "l2-29", text: "Sebutkan tempat paling nakal yang pernah atau ingin kalian pakai untuk bercinta.", timed: false },
       { id: "l2-30", text: "Buat pasangan terangsang tanpa membuka pakaian selama 1 menit.", timed: true }
+      { id: "l2-31", text: "Bisikkan kalimat rayuan paling berani yang terpikir di telinga pasangan.", timed: false },
+      { id: "l2-32", text: "Biarkan pasangan memilih satu bagian tubuhmu untuk diberi ciuman selama 20 detik.", timed: true },
+      { id: "l2-33", text: "Lakukan tarian menggoda khusus untuk pasangan selama 1 menit.", timed: true },
+      { id: "l2-34", text: "Tatap mata pasangan sambil menyebutkan hal yang paling membuatmu tertarik.", timed: false },
+      { id: "l2-35", text: "Berikan pijatan sensual pada bahu dan punggung pasangan selama 1 menit.", timed: true },
+      { id: "l2-36", text: "Pilih satu pakaian yang ingin kamu lihat dikenakan pasangan malam ini.", timed: false },
+      { id: "l2-37", text: "Cium pasangan di bagian yang ia pilih selama 30 detik.", timed: true },
+      { id: "l2-38", text: "Peragakan ekspresi wajah paling menggoda yang bisa kamu buat.", timed: false },
+      { id: "l2-39", text: "Dekatkan wajah kalian dan tahan godaan untuk berciuman selama 20 detik.", timed: true },
+      { id: "l2-40", text: "Sebutkan satu hal kecil yang langsung membuat suasana terasa lebih intim.", timed: false },
+      { id: "l2-41", text: "Biarkan pasangan mengatur posisi dudukmu dengan gaya paling seksi.", timed: false },
+      { id: "l2-42", text: "Beri pasangan tiga ciuman: lembut, berani, dan paling menggoda.", timed: false },
+      { id: "l2-43", text: "Ucapkan satu kalimat nakal yang ingin kamu dengar malam ini.", timed: false },
+      { id: "l2-44", text: "Saling berpelukan erat sambil membisikkan keinginan masing-masing selama 30 detik.", timed: true },
+      { id: "l2-45", text: "Pilih satu tantangan berikutnya yang ingin kamu lakukan bersama pasangan.", timed: false }
     ]
   }
 };
