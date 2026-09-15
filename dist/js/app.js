@@ -261,7 +261,7 @@ function renderBoard() {
   board.innerHTML = boardSequence().map((number) => {
     const trap = game.trapMap[number];
     const special = LADDER[number] ? "ladder-start" : SNAKE[number] ? "snake-start" : "";
-    return `<div class="cell ${number % 2 ? "cell-dark" : "cell-light"} ${trap ? "trap-cell" : ""} ${special}" data-cell="${number}"><span class="cell-number">${number}</span>${trap ? `<span class="trap-mark" title="${trap.timed ? "Tantangan timer" : "Tantangan langsung"}">${trap.timed ? "⏱" : "⚡"}</span>` : ""}<div class="tokens"></div></div>`;
+    return `<div class="cell ${number % 2 ? "cell-dark" : "cell-light"} ${trap ? "trap-cell" : ""} ${special}" data-cell="${number}"><span class="cell-number">${number}</span>${trap ? `<span class="trap-mark" title="${trap.timed ? "Tantangan timer" : "Tantangan langsung"}">♥</span>` : ""}<div class="tokens"></div></div>`;
   }).join("");
   drawBoardLinks();
 }
