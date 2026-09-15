@@ -114,7 +114,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .cell:nth-child(4n) { background: #dcb6ef; }
 .cell-number { z-index: 4; font-size: clamp(.53rem, 1.2vw, .8rem); line-height: 1; font-weight: 950; }
 .trap-cell::after { content: ""; position: absolute; inset: 12%; border: 2px dashed rgba(130,25,105,.22); border-radius: 50%; }
-.trap-mark { position: absolute; z-index: 3; right: 6%; top: 5%; font-size: clamp(.65rem, 1.7vw, 1.1rem); filter: drop-shadow(0 1px white); }
+.trap-mark { position: absolute; z-index: 3; right: 6%; top: 3%; color: #ff3d9a; font-size: clamp(.75rem, 1.9vw, 1.2rem); line-height: 1; text-shadow: 0 0 4px #fff, 0 0 8px #ff3d9a, 0 0 14px #ff1f87; filter: drop-shadow(0 1px 2px rgba(90,8,70,.45)); animation: challengeHeartPulse 1.25s ease-in-out infinite alternate; }\n@keyframes challengeHeartPulse { to { transform: scale(1.14); text-shadow: 0 0 5px #fff, 0 0 12px #ff3d9a, 0 0 20px #ff1f87; } }
 .tokens { position: absolute; z-index: 8; inset: 27% 7% 5%; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 2px; }
 .token, .status-token { display: grid; place-items: center; width: clamp(14px, 3.2vw, 28px); aspect-ratio: 1; border: 2px solid white; border-radius: 50%; color: #1d0726; background: var(--token); box-shadow: 0 3px 7px rgba(0,0,0,.35); font-size: clamp(.48rem, 1.3vw, .7rem); font-weight: 950; }
 .board-links { position: absolute; z-index: 6; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: drop-shadow(0 3px 4px rgba(0,0,0,.32)); }
