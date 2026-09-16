@@ -3,7 +3,7 @@ import { WORD_LEVELS } from "./words.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const STORAGE = { custom: "gp-custom-v1", customWords: "gp-custom-words-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedWords: "gp-word-selected-v1", wordDuration: "gp-word-duration-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1", ludoGame: "gp-ludo-game-v1" };
+const STORAGE = { custom: "gp-custom-v1", customWords: "gp-custom-words-v1", selected: "gp-selected-v1", selectedCards: "gp-card-selected-v1", selectedWheel: "gp-wheel-selected-v1", selectedLudo: "gp-ludo-selected-v1", selectedWords: "gp-word-selected-v1", wordDuration: "gp-word-duration-v1", mute: "gp-muted-v1", game: "gp-current-game-v1", cardGame: "gp-card-game-v1", wheelGame: "gp-wheel-game-v1", wordGame: "gp-word-game-v1", ludoGame: "gp-ludo-game-v1" };
 const COLORS = ["#ff3d81", "#6ee7ff", "#ffd166", "#9bff8a"];
 const LUDO_COLORS = ["#ef3f5d", "#35c87a", "#ffd166", "#4f9cff"];
 const LUDO_COLOR_NAMES = ["Merah", "Hijau", "Kuning", "Biru"];
@@ -81,6 +81,7 @@ function getChallenges(level = selectedLevel) {
 function selectionStorageKey() {
   if (selectedGameMode === "cards") return STORAGE.selectedCards;
   if (selectedGameMode === "wheel") return STORAGE.selectedWheel;
+  if (selectedGameMode === "ludo") return STORAGE.selectedLudo;
   return STORAGE.selected;
 }
 
@@ -142,12 +143,12 @@ function updateSelectedCount() {
 function openSetup(level) {
   selectedLevel = Number(level);
   if (selectedGameMode === "words") return openWordSetup();
-  const prefix = selectedGameMode === "cards" ? "KARTU TANTANGAN" : selectedGameMode === "wheel" ? "SPIN WHEEL" : "ULAR TANGGA";
+  const prefix = selectedGameMode === "cards" ? "KARTU TANTANGAN" : selectedGameMode === "wheel" ? "SPIN WHEEL" : selectedGameMode === "ludo" ? "LUDO PASANGAN" : "ULAR TANGGA";
   const levelText = selectedLevel === 1 ? `${prefix} · LEVEL 1 · ROMANTIS` : `${prefix} · LEVEL 2 · HOT & BERANI · 18+`;
   $("#setupEyebrow").textContent = levelText;
-  $("#selectionTitle").textContent = selectedGameMode === "cards" ? "Pilih kartu" : selectedGameMode === "wheel" ? "Pilih tantangan" : "Pilih jebakan";
-  $("#selectionDescription").textContent = selectedGameMode === "cards" ? "akan dikocok menjadi satu dek" : selectedGameMode === "wheel" ? "akan dimasukkan ke roda" : "akan mengisi 30 kotak";
-  $("#startGameBtn").textContent = selectedGameMode === "cards" ? "Kocok Kartu & Mulai" : selectedGameMode === "wheel" ? "Buat Roda & Mulai" : "Acak Papan & Mulai";
+  $("#selectionTitle").textContent = selectedGameMode === "cards" ? "Pilih kartu" : selectedGameMode === "snake" ? "Pilih jebakan" : "Pilih tantangan";
+  $("#selectionDescription").textContent = selectedGameMode === "cards" ? "akan dikocok menjadi satu dek" : selectedGameMode === "wheel" ? "akan dimasukkan ke roda" : selectedGameMode === "ludo" ? "akan ditempatkan pada kotak hati neon" : "akan mengisi 30 kotak";
+  $("#startGameBtn").textContent = selectedGameMode === "cards" ? "Kocok Kartu & Mulai" : selectedGameMode === "wheel" ? "Buat Roda & Mulai" : selectedGameMode === "ludo" ? "Acak Tantangan & Mulai Ludo" : "Acak Papan & Mulai";
   renderPlayerInputs();
   renderChallengeList();
   showScreen("setupScreen");
@@ -213,6 +214,7 @@ function startGame() {
   if (!selectedChallenges.length) return;
   if (selectedGameMode === "cards") return startCardGame(names, selectedChallenges);
   if (selectedGameMode === "wheel") return startWheelGame(names, selectedChallenges);
+  if (selectedGameMode === "ludo") return startLudoGame(names, selectedChallenges);
   game = {
     level: selectedLevel,
     players: names.map((name, index) => ({ name, color: COLORS[index], position: 1 })),
@@ -396,6 +398,7 @@ function closeChallenge() {
   $("#timerDisplay").classList.remove("finished");
   if (challengeOwner === "cards") finishCardTurn();
   else if (challengeOwner === "wheel") finishWheelTurn();
+  else if (challengeOwner === "ludo") finishLudoTurn();
   else finishTurn();
 }
 
@@ -431,6 +434,7 @@ function openLevelSelection(mode) {
     snake: ["ULAR TANGGA PASANGAN", "Keduanya memakai papan yang sama, tetapi tantangannya berbeda."],
     cards: ["KARTU TANTANGAN PASANGAN", "Pilih suasana kartu yang ingin kalian mainkan malam ini."],
     wheel: ["SPIN WHEEL PASANGAN", "Pilih level, atur tantangan, lalu biarkan roda menentukan giliran kalian."],
+    ludo: ["LUDO PASANGAN", "Pilih level, atur pemain dan tantangan, lalu mulai perjalanan menuju garis finis."],
     words: ["TEBAK KATA PASANGAN", "Pilih level kata, lalu buktikan seberapa kompak kalian dalam 30 detik."]
   }[mode];
   $("#levelEyebrow").textContent = labels[0];
@@ -673,9 +677,22 @@ function openLudoSetup() {
   showScreen("ludoSetupScreen");
 }
 
-function startLudoGame() {
-  const names = $$("#ludoPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+function buildLudoChallengeMap(selectedChallenges) {
+  const candidates = Array.from({ length: 52 }, (_, index) => index)
+    .filter((index) => !LUDO_SAFE.has(index));
+  const cells = shuffle(candidates).slice(0, 16);
+  let pool = [];
+  while (pool.length < cells.length) pool.push(...shuffle(selectedChallenges));
+  return Object.fromEntries(cells.map((cell, index) => [cell, pool[index]]));
+}
+
+function startLudoGame(names, selectedChallenges) {
+  names ||= $("#ludoPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+  selectedChallenges ||= getChallenges();
+  if (!selectedChallenges.length) return;
   ludoGame = {
+    level: selectedLevel,
+    challengeMap: buildLudoChallengeMap(selectedChallenges),
     players: names.map((name, index) => ({ name, color: LUDO_COLORS[index], pieces: [-1, -1, -1, -1] })),
     currentIndex: Math.floor(Math.random() * names.length),
     phase: "roll",
@@ -710,6 +727,9 @@ function enterLudoGame() {
   ludoGame.currentIndex = Math.min(Math.max(Number(ludoGame.currentIndex) || 0, 0), ludoGame.players.length - 1);
   ludoGame.phase = ludoGame.phase === "select" ? "select" : "roll";
   ludoGame.dice = Math.min(6, Math.max(1, Number(ludoGame.dice) || 1));
+  ludoGame.level = Number(ludoGame.level) === 2 ? 2 : 1;
+  selectedLevel = ludoGame.level;
+  ludoGame.challengeMap = ludoGame.challengeMap && typeof ludoGame.challengeMap === "object" ? ludoGame.challengeMap : {};
   ludoGame.turn = Math.max(1, Number(ludoGame.turn) || 1);
   ludoGame.message = String(ludoGame.message || `Giliran ${ludoGame.players[ludoGame.currentIndex].name}. Tekan dadu.`);
   selectedGameMode = "ludo";
@@ -738,6 +758,7 @@ function renderLudoBoard() {
         const pathIndex = pathMap.get(key);
         cell.classList.add("ludo-path");
         if (LUDO_SAFE.has(pathIndex)) { cell.classList.add("ludo-safe"); cell.innerHTML = "<span>★</span>"; }
+        if (ludoGame.challengeMap?.[pathIndex]) { cell.classList.add("ludo-challenge"); cell.insertAdjacentHTML("beforeend", '<span class="ludo-challenge-heart">♥</span>'); }
         const startPlayer = LUDO_STARTS.indexOf(pathIndex);
         if (startPlayer >= 0) cell.style.setProperty("--cell-color", LUDO_COLORS[startPlayer]);
       } else if (laneMap.has(key)) {
@@ -891,6 +912,15 @@ async function moveLudoPiece(pieceIndex) {
   saveLudoGame();
   renderLudoState();
   if (player.pieces.every((piece) => piece >= 58)) return showLudoWinner(player);
+  if (finalProgress >= 0 && finalProgress <= 51) {
+    const global = globalLudoPosition(playerIndex, finalProgress);
+    const challenge = ludoGame.challengeMap?.[global];
+    if (challenge) {
+      busy = false;
+      openChallenge(challenge, player, "Kotak tantangan Ludo", "ludo");
+      return;
+    }
+  }
   finishLudoTurn();
 }
 
@@ -917,9 +947,11 @@ function showLudoWinner(player) {
 function resetLudoToSetup() {
   if (!confirm("Mulai ulang Ludo? Semua posisi pion akan dihapus.")) return;
   localStorage.removeItem(STORAGE.ludoGame);
+  const level = ludoGame?.level || selectedLevel;
   ludoGame = null;
   busy = false;
-  openLudoSetup();
+  selectedGameMode = "ludo";
+  openSetup(level);
 }
 
 function getCustomWords() {
@@ -1254,7 +1286,7 @@ $$('[data-game]').forEach((button) => button.addEventListener("click", () => {
   if (button.dataset.game === "snake") return openLevelSelection("snake");
   if (button.dataset.game === "cards") return openLevelSelection("cards");
   if (button.dataset.game === "wheel") return openLevelSelection("wheel");
-  if (button.dataset.game === "ludo") return openLudoSetup();
+  if (button.dataset.game === "ludo") return openLevelSelection("ludo");
   if (button.dataset.game === "words") return openLevelSelection("words");
   const data = { wheel: ["🎡", "Spin Wheel"], ludo: ["🎯", "Ludo"], cards: ["🃏", "Kartu Tantangan"], words: ["💬", "Tebak Kata"] }[button.dataset.game];
   $("#placeholderIcon").textContent = data[0]; $("#placeholderTitle").textContent = data[1]; showScreen("placeholderScreen");
@@ -1299,7 +1331,7 @@ $("#ludoBoard").addEventListener("click", (event) => {
   if (token && Number(token.dataset.player) === ludoGame?.currentIndex) moveLudoPiece(Number(token.dataset.piece));
 });
 $("#newLudoGameBtn").addEventListener("click", resetLudoToSetup);
-$("#playLudoAgainBtn").addEventListener("click", () => { $("#ludoWinnerModal").classList.add("hidden"); ludoGame = null; openLudoSetup(); });
+$("#playLudoAgainBtn").addEventListener("click", () => { $("#ludoWinnerModal").classList.add("hidden"); const level = ludoGame?.level || selectedLevel; ludoGame = null; selectedGameMode = "ludo"; openSetup(level); });
 $("#wordList").addEventListener("change", updateSelectedWordCount);
 $("#wordList").addEventListener("click", (event) => {
   const id = event.target.dataset.deleteCustomWord;
