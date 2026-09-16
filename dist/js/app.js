@@ -101,7 +101,7 @@ function saveSelected(ids, level = selectedLevel) {
 
 function renderPlayerInputs(values) {
   const holder = $("#playerInputs");
-  const oldValues = values || $$(".player-name").map((input) => input.value);
+  const oldValues = values || $("#playerInputs .player-name").map((input) => input.value);
   holder.innerHTML = "";
   for (let index = 0; index < playerCount; index += 1) {
     const row = document.createElement("div");
@@ -135,6 +135,8 @@ function updateSelectedCount() {
       ? `${checked.length} kartu akan dikocok dan dimainkan tanpa pengulangan dalam satu ronde.`
       : selectedGameMode === "wheel"
         ? `${checked.length} tantangan aktif dan memiliki peluang yang sama saat roda diputar.`
+      : selectedGameMode === "ludo"
+        ? `${checked.length} tantangan aktif akan diacak ke 16 kotak hati neon pada papan Ludo.`
       : checked.length < 30 ? `${checked.length} tantangan terpilih akan diulang secara acak hingga mengisi 30 kotak.` : "Tantangan akan diacak merata, 3 jebakan pada setiap baris."
     : "Pilih minimal satu tantangan untuk memulai.";
   saveSelected(new Set(checked.map((input) => input.value)));
@@ -208,7 +210,7 @@ function buildTrapMap(selectedChallenges) {
 }
 
 function startGame() {
-  const names = $$(".player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+  const names = $("#playerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
   const selectedIds = new Set($$("#challengeList input:checked").map((input) => input.value));
   const selectedChallenges = getChallenges().filter((item) => selectedIds.has(item.id));
   if (!selectedChallenges.length) return;
@@ -734,6 +736,7 @@ function enterLudoGame() {
   ludoGame.message = String(ludoGame.message || `Giliran ${ludoGame.players[ludoGame.currentIndex].name}. Tekan dadu.`);
   selectedGameMode = "ludo";
   busy = false;
+  $("#ludoGameLevelLabel").textContent = selectedLevel === 1 ? "LUDO · LEVEL 1 · ROMANTIS" : "LUDO · LEVEL 2 · HOT & BERANI";
   saveLudoGame();
   renderLudoBoard();
   renderLudoState();
