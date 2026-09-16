@@ -1,5 +1,5 @@
-import { LEVELS } from "./challenges.js";
-import { WORD_LEVELS } from "./words.js";
+import { LEVELS } from "./challenges.js?v=20260916";
+import { WORD_LEVELS } from "./words.js?v=20260916";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -36,7 +36,12 @@ let busy = false;
 let timerId = null;
 let chosenDuration = 30;
 let wordDuration = 30;
-let muted = JSON.parse(localStorage.getItem(STORAGE.mute) ?? "false");
+let muted = false;
+try {
+  muted = JSON.parse(localStorage.getItem(STORAGE.mute) ?? "false") === true;
+} catch {
+  localStorage.removeItem(STORAGE.mute);
+}
 let audioContext;
 
 const screens = $$(".screen");
@@ -1099,7 +1104,7 @@ function startWordGame() {
     remainingWords: shuffle(selectedWords),
     currentWord: null,
     phase: "ready",
-    timeLeft: 30,
+    timeLeft: wordDuration,
     endAt: null,
     round: 1,
     roundCorrect: 0,
@@ -1119,6 +1124,7 @@ function enterWordGame() {
   selectedLevel = Number(wordGame.level);
   wordDuration = [30, 60, 120, 180].includes(Number(wordGame.duration)) ? Number(wordGame.duration) : 30;
   wordGame.duration = wordDuration;
+  if (wordGame.phase === "ready") wordGame.timeLeft = wordDuration;
   $("#wordGameLevelLabel").textContent = selectedLevel === 1
     ? "TEBAK KATA · LEVEL 1 · ROMANTIS"
     : "TEBAK KATA · LEVEL 2 · HOT & VULGAR · 18+";

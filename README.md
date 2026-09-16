@@ -32,8 +32,8 @@ Kumpulan lima permainan untuk pasangan. Saat ini game **Ular Tangga**, **Kartu T
 
 ## Fitur Ludo
 
-- Aturan standar untuk 2–4 pemain dengan 4 pion per pemain.
-- Pion hanya keluar dari rumah ketika mendapat angka 6.
+- Permainan untuk 2–4 pemain dengan 4 pion per pemain.
+- Pion dapat keluar dari rumah dan bergerak dengan angka dadu 1–6.
 - Tidak ada giliran tambahan, termasuk setelah angka 6 atau memakan pion.
 - Kotak aman, makan pion lawan, jalur finis berwarna, dan langkah finis harus tepat.
 - Animasi dadu dan pergerakan pion satu langkah demi satu langkah.
