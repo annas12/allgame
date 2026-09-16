@@ -101,7 +101,7 @@ function saveSelected(ids, level = selectedLevel) {
 
 function renderPlayerInputs(values) {
   const holder = $("#playerInputs");
-  const oldValues = values || $("#playerInputs .player-name").map((input) => input.value);
+  const oldValues = values || $$("#playerInputs .player-name").map((input) => input.value);
   holder.innerHTML = "";
   for (let index = 0; index < playerCount; index += 1) {
     const row = document.createElement("div");
@@ -210,7 +210,7 @@ function buildTrapMap(selectedChallenges) {
 }
 
 function startGame() {
-  const names = $("#playerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+  const names = $$("#playerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
   const selectedIds = new Set($$("#challengeList input:checked").map((input) => input.value));
   const selectedChallenges = getChallenges().filter((item) => selectedIds.has(item.id));
   if (!selectedChallenges.length) return;
@@ -689,7 +689,7 @@ function buildLudoChallengeMap(selectedChallenges) {
 }
 
 function startLudoGame(names, selectedChallenges) {
-  names ||= $("#ludoPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
+  names ||= $$("#ludoPlayerInputs .player-name").map((input, index) => input.value.trim() || `Pemain ${index + 1}`);
   selectedChallenges ||= getChallenges();
   if (!selectedChallenges.length) return;
   ludoGame = {
