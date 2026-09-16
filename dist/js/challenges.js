@@ -31,7 +31,7 @@ export const LEVELS = {
       { id: "l1-27", text: "Buat pasangan tersenyum tanpa menyentuhnya selama 20 detik.", timed: true },
       { id: "l1-28", text: "Pilih satu foto lama kalian dan ceritakan kenapa foto itu berharga.", timed: false },
       { id: "l1-29", text: "Berikan ciuman di pipi kanan dan kiri pasangan.", timed: false },
-      { id: "l1-30", text: "Ucapkan satu harapan tulus untuk hubungan kalian.", timed: false }
+      { id: "l1-30", text: "Ucapkan satu harapan tulus untuk hubungan kalian.", timed: false },
       { id: "l1-31", text: "Peluk pasangan dari belakang sambil mengucapkan satu kalimat manis.", timed: false },
       { id: "l1-32", text: "Tatap pasangan lalu sebutkan alasan kamu memilihnya.", timed: false },
       { id: "l1-33", text: "Buat pasangan tertawa dengan cerita atau tingkah lucu selama 30 detik.", timed: true },
@@ -81,7 +81,7 @@ export const LEVELS = {
       { id: "l2-27", text: "Perlihatkan ekspresi wajahmu saat sedang sangat bergairah.", timed: false },
       { id: "l2-28", text: "Cium bibir pasangan sambil tangannya memegang bagian tubuh pilihanmu selama 30 detik.", timed: true },
       { id: "l2-29", text: "Sebutkan tempat paling nakal yang pernah atau ingin kalian pakai untuk bercinta.", timed: false },
-      { id: "l2-30", text: "Buat pasangan terangsang tanpa membuka pakaian selama 1 menit.", timed: true }
+      { id: "l2-30", text: "Buat pasangan terangsang tanpa membuka pakaian selama 1 menit.", timed: true },
       { id: "l2-31", text: "Bisikkan kalimat rayuan paling berani yang terpikir di telinga pasangan.", timed: false },
       { id: "l2-32", text: "Biarkan pasangan memilih satu bagian tubuhmu untuk diberi ciuman selama 20 detik.", timed: true },
       { id: "l2-33", text: "Lakukan tarian menggoda khusus untuk pasangan selama 1 menit.", timed: true },
