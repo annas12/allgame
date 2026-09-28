@@ -185,10 +185,10 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .wheel-spin-btn { min-width: min(300px, 100%); margin-top: 0; }
 .wheel-sidebar .card-round-stat span { min-width: 44px; }
 
-.modal { position: fixed; z-index: 100; inset: 0; padding: 20px; display: grid; place-items: center; background: rgba(255,225,244,.84); backdrop-filter: blur(12px); animation: modalIn .22s ease both; }
+.modal { position: fixed; z-index: 100; inset: 0; padding: 20px; display: grid; place-items: center; background: rgba(8,0,13,.76); backdrop-filter: blur(10px); animation: modalIn .22s ease both; }
 @keyframes modalIn { from { opacity: 0; } }
-.modal-card { width: min(500px, 100%); padding: 30px; border: 1px solid rgba(255,255,255,.18); border-radius: 28px; background: radial-gradient(circle at 90% 0, rgba(255,61,129,.2), transparent 30%), #2a0a37; box-shadow: 0 30px 90px rgba(64,8,63,.28); text-align: center; }
-.challenge-modal-card { width: min(620px, 100%); padding: clamp(24px, 5vw, 38px); border: 1px solid rgba(255,61,154,.5); background: radial-gradient(circle at 50% 0, rgba(255,126,207,.42), transparent 38%), linear-gradient(145deg, #fffaff 0%, #fff1fa 56%, #fbe5f7 100%); color: #57144f; box-shadow: 0 25px 80px rgba(207,48,152,.24), 0 0 0 1px rgba(255,255,255,.75) inset; }
+.modal-card { width: min(500px, 100%); padding: 30px; border: 1px solid rgba(255,255,255,.18); border-radius: 28px; background: radial-gradient(circle at 90% 0, rgba(255,61,129,.2), transparent 30%), #2a0a37; box-shadow: 0 30px 90px rgba(0,0,0,.6); text-align: center; }
+#challengeModal { background: rgba(255,225,244,.84); backdrop-filter: blur(12px); }\n.challenge-modal-card { width: min(620px, 100%); padding: clamp(24px, 5vw, 38px); border: 1px solid rgba(255,61,154,.5); background: radial-gradient(circle at 50% 0, rgba(255,126,207,.42), transparent 38%), linear-gradient(145deg, #fffaff 0%, #fff1fa 56%, #fbe5f7 100%); color: #57144f; box-shadow: 0 25px 80px rgba(207,48,152,.24), 0 0 0 1px rgba(255,255,255,.75) inset; }
 .challenge-type { display: inline-block; padding: 8px 14px; border-radius: 999px; color: #d11473; background: rgba(255,61,154,.13); border: 1px solid rgba(255,61,154,.28); font-size: .72rem; font-weight: 950; letter-spacing: .08em; }
 .modal-player { margin: 17px 0 4px; color: #ed3d9a; font-size: clamp(.85rem, 2vw, 1rem); font-weight: 850; }
 .challenge-modal-card h2 { margin: 0 0 18px; color: #7a5278; font-size: clamp(.95rem, 2.6vw, 1.2rem); font-weight: 700; }
