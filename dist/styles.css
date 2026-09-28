@@ -188,7 +188,8 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .modal { position: fixed; z-index: 100; inset: 0; padding: 20px; display: grid; place-items: center; background: rgba(8,0,13,.76); backdrop-filter: blur(10px); animation: modalIn .22s ease both; }
 @keyframes modalIn { from { opacity: 0; } }
 .modal-card { width: min(500px, 100%); padding: 30px; border: 1px solid rgba(255,255,255,.18); border-radius: 28px; background: radial-gradient(circle at 90% 0, rgba(255,61,129,.2), transparent 30%), #2a0a37; box-shadow: 0 30px 90px rgba(0,0,0,.6); text-align: center; }
-#challengeModal { background: rgba(255,225,244,.84); backdrop-filter: blur(12px); }\n.challenge-modal-card { width: min(620px, 100%); padding: clamp(24px, 5vw, 38px); border: 1px solid rgba(255,61,154,.5); background: radial-gradient(circle at 50% 0, rgba(255,126,207,.42), transparent 38%), linear-gradient(145deg, #fffaff 0%, #fff1fa 56%, #fbe5f7 100%); color: #57144f; box-shadow: 0 25px 80px rgba(207,48,152,.24), 0 0 0 1px rgba(255,255,255,.75) inset; }
+#challengeModal { background: rgba(255,225,244,.84); backdrop-filter: blur(12px); }
+.challenge-modal-card { width: min(620px, 100%); padding: clamp(24px, 5vw, 38px); border: 1px solid rgba(255,61,154,.5); background: radial-gradient(circle at 50% 0, rgba(255,126,207,.42), transparent 38%), linear-gradient(145deg, #fffaff 0%, #fff1fa 56%, #fbe5f7 100%); color: #57144f; box-shadow: 0 25px 80px rgba(207,48,152,.24), 0 0 0 1px rgba(255,255,255,.75) inset; }
 .challenge-type { display: inline-block; padding: 8px 14px; border-radius: 999px; color: #d11473; background: rgba(255,61,154,.13); border: 1px solid rgba(255,61,154,.28); font-size: .72rem; font-weight: 950; letter-spacing: .08em; }
 .modal-player { margin: 17px 0 4px; color: #ed3d9a; font-size: clamp(.85rem, 2vw, 1rem); font-weight: 850; }
 .challenge-modal-card h2 { margin: 0 0 18px; color: #7a5278; font-size: clamp(.95rem, 2.6vw, 1.2rem); font-weight: 700; }
@@ -355,3 +356,68 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 
 .snake-link { display: inline-grid; place-items: center; text-decoration: none; color: inherit; }
 .snake-link:hover { text-decoration: none; transform: translateY(-1px); }
+
+
+/* Bright challenge dialog: match the light pink reference across every game */
+#challengeModal {
+  background: rgba(255, 239, 249, .94);
+  backdrop-filter: blur(16px);
+}
+#challengeModal .challenge-modal-card {
+  width: min(1120px, 100%);
+  min-height: min(820px, calc(100vh - 28px));
+  padding: clamp(28px, 5vw, 68px);
+  border-radius: 38px;
+  border: 1px solid rgba(255, 82, 178, .5);
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 167, 224, .45), transparent 42%),
+    linear-gradient(145deg, #fffaff 0%, #fff2fb 58%, #f9e5f7 100%);
+  color: #57144f;
+  box-shadow: 0 25px 80px rgba(207, 48, 152, .24), 0 0 0 1px rgba(255,255,255,.8) inset;
+}
+#challengeModal .challenge-type {
+  padding: 10px 18px;
+  color: #d11473;
+  background: rgba(255, 61, 154, .1);
+  border: 2px solid rgba(255, 61, 154, .4);
+  font-size: clamp(.8rem, 1.4vw, 1rem);
+}
+#challengeModal .modal-player {
+  color: #ed3d9a;
+  font-size: clamp(1rem, 2vw, 1.45rem);
+}
+#challengeModal .challenge-modal-card h2 {
+  color: #765274;
+  font-size: clamp(1.25rem, 2.8vw, 2.1rem);
+}
+#challengeModal .challenge-text {
+  font-size: clamp(1.55rem, 4.4vw, 3.15rem);
+  line-height: 1.28;
+  border-width: 2px;
+  border-radius: 28px;
+  padding: clamp(30px, 5vw, 58px) clamp(24px, 5vw, 56px);
+}
+#challengeModal .timer-controls {
+  padding: clamp(22px, 3vw, 34px);
+  border-radius: 26px;
+  background: rgba(255,255,255,.7);
+}
+#challengeModal .duration-options button {
+  min-height: 58px;
+  font-size: clamp(.9rem, 1.6vw, 1.2rem);
+}
+#challengeModal #startTimerBtn,
+#challengeModal #doneChallengeBtn {
+  min-height: 64px;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+}
+@media (max-width: 520px) {
+  #challengeModal .challenge-modal-card {
+    min-height: calc(100vh - 14px);
+    padding: 24px 16px;
+    border-radius: 28px;
+  }
+  #challengeModal .challenge-text {
+    font-size: clamp(1.3rem, 7vw, 2.1rem);
+  }
+}
